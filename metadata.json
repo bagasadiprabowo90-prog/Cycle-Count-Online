@@ -1,0 +1,10 @@
+{
+  "name": "Stock Opname Pro",
+  "description": "Aplikasi Stock Opname realtime menggunakan React dan Node.js untuk performa maksimal dan bebas lag.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
