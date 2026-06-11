@@ -61,7 +61,7 @@ Deploy Apps Script sebagai Web App:
 
 Pastikan environment production memiliki `GOOGLE_SCRIPT_URL`. Untuk hosting yang menyediakan port dinamis, isi atau biarkan platform mengatur `PORT`.
 
-## Deploy ke Render
+## Deploy gratis ke Render
 
 Repository ini sudah menyertakan `render.yaml` untuk deploy sebagai Node Web Service.
 
@@ -77,4 +77,6 @@ Repository ini sudah menyertakan `render.yaml` untuk deploy sebagai Node Web Ser
    npm start
    ```
 
-`DATA_DIR` diarahkan ke `/var/data` supaya database SQLite lokal memakai persistent disk Render.
+Config ini memakai Render Free Web Service tanpa persistent disk. Data utama tetap disimpan di Google Sheets, sedangkan SQLite lokal hanya menjadi cache sementara. Jika service restart, cache lokal bisa kosong dan aplikasi akan mengambil ulang data dari Google Sheets saat sync.
+
+Jika suatu saat ingin cache lokal dan pending writes tetap aman saat restart, tambahkan persistent disk dan set `DATA_DIR` ke mount path disk tersebut.

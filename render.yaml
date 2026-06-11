@@ -9,9 +9,3 @@ services:
         value: production
       - key: GOOGLE_SCRIPT_URL
         sync: false
-      - key: DATA_DIR
-        value: /var/data
-    disk:
-      name: stock-opname-data
-      mountPath: /var/data
-      sizeGB: 1
