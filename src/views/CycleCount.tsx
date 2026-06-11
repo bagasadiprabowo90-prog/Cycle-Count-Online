@@ -82,6 +82,16 @@ export default function CycleCount() {
     else input.click();
   };
 
+  const normalizeQtyInput = () => {
+    const raw = qtyRaw.trim();
+    if (!raw) {
+      setQtyRaw('');
+      return;
+    }
+
+    setQtyRaw(calculateQty(raw).toString());
+  };
+
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     const finalQty = calculateQty(qtyRaw);
@@ -256,7 +266,11 @@ export default function CycleCount() {
               placeholder="0"
               value={qtyRaw}
               onChange={(e) => setQtyRaw(e.target.value)}
-              onBlur={() => setQtyRaw(calculateQty(qtyRaw).toString())}
+              onFocus={(e) => {
+                if (qtyRaw === '0') setQtyRaw('');
+                else e.currentTarget.select();
+              }}
+              onBlur={normalizeQtyInput}
             />
           </div>
 

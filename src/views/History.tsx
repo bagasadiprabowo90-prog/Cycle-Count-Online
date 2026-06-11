@@ -5,7 +5,7 @@ import { toYMD, toMDY, calculateQty, formatDateShort } from '../lib/calc';
 import { Transaction } from '../types';
 
 export default function History() {
-  const { transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, isSyncing, notify } = useStore();
+  const { products, transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, isSyncing, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [tab, setTab] = useState<'IN' | 'CC'>('CC');
@@ -45,6 +45,19 @@ export default function History() {
     setEditQtyRaw(t.qty.toString());
   };
 
+  const getBatchOptions = (t: Transaction) => {
+    const batchOptions = products
+      .filter(p => p.sku === t.sku && p.batch)
+      .map(p => p.batch);
+    const uniqueBatches = Array.from(new Set(batchOptions));
+
+    if (t.batch && !uniqueBatches.includes(t.batch)) {
+      return [t.batch, ...uniqueBatches];
+    }
+
+    return uniqueBatches;
+  };
+
   const openDatePicker = () => {
     const input = dateInputRef.current;
     if (!input) return;
@@ -59,8 +72,16 @@ export default function History() {
       return;
     }
 
+    const selectedProduct = products.find(p => p.sku === t.sku && p.batch === editBatch);
+
     setMutatingId(t.id);
-    const result = await updateTransaction(t.id, t.type, { ...t, batch: editBatch, qty: finalQty });
+    const result = await updateTransaction(t.id, t.type, {
+      ...t,
+      barcode: selectedProduct?.barcode || t.barcode,
+      product: selectedProduct?.product || t.product,
+      batch: editBatch,
+      qty: finalQty
+    });
     setMutatingId(null);
 
     if (!result.success) {
@@ -187,19 +208,33 @@ export default function History() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map(t => (
-                editingId === t.id ? (
+              {filtered.map(t => {
+                const batchOptions = getBatchOptions(t);
+
+                return editingId === t.id ? (
                   <tr key={t.id} className="bg-slate-50">
                     <td className="px-3 py-2.5 align-top">
                       <div className="font-semibold text-slate-900 leading-tight">{t.product}</div>
                       <div className="text-[10px] text-slate-400 mt-0.5">{t.sku}</div>
                     </td>
                     <td className="px-2 py-2.5 align-top">
-                      <input
-                        className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        value={editBatch}
-                        onChange={(e) => setEditBatch(e.target.value)}
-                      />
+                      {t.type === 'CC' && batchOptions.length > 0 ? (
+                        <select
+                          className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                          value={editBatch}
+                          onChange={(e) => setEditBatch(e.target.value)}
+                        >
+                          {batchOptions.map(batch => (
+                            <option key={batch} value={batch}>{batch}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                          value={editBatch}
+                          onChange={(e) => setEditBatch(e.target.value)}
+                        />
+                      )}
                     </td>
                     <td className="px-2 py-2.5 align-top text-right">
                       <input
@@ -260,8 +295,8 @@ export default function History() {
                       </div>
                     </td>
                   </tr>
-                )
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
