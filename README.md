@@ -60,3 +60,21 @@ Deploy Apps Script sebagai Web App:
 ## Catatan Deploy
 
 Pastikan environment production memiliki `GOOGLE_SCRIPT_URL`. Untuk hosting yang menyediakan port dinamis, isi atau biarkan platform mengatur `PORT`.
+
+## Deploy ke Render
+
+Repository ini sudah menyertakan `render.yaml` untuk deploy sebagai Node Web Service.
+
+1. Push branch ke GitHub.
+2. Di Render, pilih New > Blueprint, lalu hubungkan repository GitHub ini.
+3. Saat diminta environment variable, isi:
+   ```bash
+   GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/DEPLOYMENT_ID/exec"
+   ```
+4. Render akan menjalankan:
+   ```bash
+   npm ci && npm run build
+   npm start
+   ```
+
+`DATA_DIR` diarahkan ke `/var/data` supaya database SQLite lokal memakai persistent disk Render.

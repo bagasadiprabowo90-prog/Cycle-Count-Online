@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: stock-opname-pro
+    env: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GOOGLE_SCRIPT_URL
+        sync: false
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: stock-opname-data
+      mountPath: /var/data
+      sizeGB: 1

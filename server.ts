@@ -15,7 +15,7 @@ const SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL?.trim();
 // Berfungsi mempercepat baca data ke Frontend tanpa menunggu respons Google Sheets
 let cachedProducts: any[] = [];
 
-const dataDir = path.join(process.cwd(), 'data');
+const dataDir = process.env.DATA_DIR?.trim() || path.join(process.cwd(), 'data');
 fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(path.join(dataDir, 'stock-opname.sqlite'));
