@@ -118,27 +118,17 @@ export default function History() {
       </div>
 
       <div className="flex gap-3 mb-4">
-        <div className="flex-1 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-3 text-white shadow-md">
-          <div className="text-[10px] font-semibold text-indigo-200 uppercase tracking-wide">Product In</div>
-          <div className="text-lg font-black mt-0.5">{totalIn.toLocaleString()}</div>
-        </div>
         <div className="flex-1 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-3 text-white shadow-md">
           <div className="text-[10px] font-semibold text-emerald-200 uppercase tracking-wide">Cycle Count</div>
           <div className="text-lg font-black mt-0.5">{totalCC.toLocaleString()}</div>
         </div>
+        <div className="flex-1 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-3 text-white shadow-md">
+          <div className="text-[10px] font-semibold text-indigo-200 uppercase tracking-wide">Product In</div>
+          <div className="text-lg font-black mt-0.5">{totalIn.toLocaleString()}</div>
+        </div>
       </div>
 
       <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-xl">
-        <button
-          onClick={() => switchTab('IN')}
-          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-            tab === 'IN'
-              ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-md'
-              : 'text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          Product In
-        </button>
         <button
           onClick={() => switchTab('CC')}
           className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
@@ -148,6 +138,16 @@ export default function History() {
           }`}
         >
           Cycle Count
+        </button>
+        <button
+          onClick={() => switchTab('IN')}
+          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+            tab === 'IN'
+              ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-md'
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          Product In
         </button>
       </div>
 
