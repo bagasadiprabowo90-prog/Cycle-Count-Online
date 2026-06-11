@@ -61,22 +61,27 @@ Deploy Apps Script sebagai Web App:
 
 Pastikan environment production memiliki `GOOGLE_SCRIPT_URL`. Untuk hosting yang menyediakan port dinamis, isi atau biarkan platform mengatur `PORT`.
 
-## Deploy gratis ke Render
+## Deploy gratis ke Vercel tanpa kartu
 
-Repository ini sudah menyertakan `render.yaml` untuk deploy sebagai Node Web Service.
+Repository ini sudah menyertakan `vercel.json` dan folder `api/` untuk deploy ke Vercel Hobby. Frontend akan dibuild sebagai Vite static app, sedangkan endpoint `/api/*` berjalan sebagai Vercel Functions yang langsung terhubung ke Google Apps Script.
 
 1. Push branch ke GitHub.
-2. Di Render, pilih New > Blueprint, lalu hubungkan repository GitHub ini.
-3. Saat diminta environment variable, isi:
+2. Di Vercel, pilih Add New > Project.
+3. Import repository GitHub ini.
+4. Saat diminta environment variable, isi:
    ```bash
    GOOGLE_SCRIPT_URL="https://script.google.com/macros/s/DEPLOYMENT_ID/exec"
    ```
-4. Render akan menjalankan:
+5. Pastikan konfigurasi build:
    ```bash
-   npm ci && npm run build
-   npm start
+   Framework Preset: Vite
+   Build Command: vite build
+   Output Directory: dist
    ```
+6. Deploy.
 
-Config ini memakai Render Free Web Service tanpa persistent disk. Data utama tetap disimpan di Google Sheets, sedangkan SQLite lokal hanya menjadi cache sementara. Jika service restart, cache lokal bisa kosong dan aplikasi akan mengambil ulang data dari Google Sheets saat sync.
+Pada deploy Vercel, data utama langsung disimpan ke Google Sheets. SQLite lokal dan server Express hanya dipakai untuk mode lokal/Render, bukan untuk Vercel.
 
-Jika suatu saat ingin cache lokal dan pending writes tetap aman saat restart, tambahkan persistent disk dan set `DATA_DIR` ke mount path disk tersebut.
+## Deploy ke Render
+
+Repository ini juga menyertakan `render.yaml` untuk deploy sebagai Node Web Service. Render Free dapat dipakai tanpa persistent disk, tetapi Render mungkin meminta kartu saat registrasi akun.
