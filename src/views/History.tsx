@@ -8,7 +8,7 @@ export default function History() {
   const { transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, isSyncing, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const [tab, setTab] = useState<'IN' | 'CC'>('IN');
+  const [tab, setTab] = useState<'IN' | 'CC'>('CC');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
