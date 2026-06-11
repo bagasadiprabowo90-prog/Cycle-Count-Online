@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store';
-import { Trash2, List, Save, X, Edit3, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, List, Save, X, Edit3, Search } from 'lucide-react';
 import { toYMD, toMDY, calculateQty, formatDateShort } from '../lib/calc';
 import { Transaction } from '../types';
 
@@ -10,7 +10,6 @@ export default function History() {
 
   const [tab, setTab] = useState<'IN' | 'CC'>('IN');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedSkus, setExpandedSkus] = useState<Set<string>>(new Set());
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBatch, setEditBatch] = useState('');
@@ -27,33 +26,16 @@ export default function History() {
     return true;
   });
 
-  const groups = filtered.reduce<Record<string, Transaction[]>>((acc, t) => {
-    const key = String(t.sku || t.product || '-');
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(t);
-    return acc;
-  }, {});
-  const groupList = Object.entries(groups);
+  const uniqueProducts = new Set(filtered.map(t => String(t.sku || t.product || '-'))).size;
 
   const totalIn = transactions.filter(t => t.type === 'IN').reduce((sum, t) => sum + t.qty, 0);
   const totalCC = transactions.filter(t => t.type === 'CC').reduce((sum, t) => sum + t.qty, 0);
 
   const tabBgClass = tab === 'IN' ? 'bg-gradient-to-r from-indigo-500 to-blue-500' : 'bg-gradient-to-r from-emerald-500 to-teal-500';
   const accentText = tab === 'IN' ? 'text-indigo-600' : 'text-emerald-600';
-  const accentBorder = tab === 'IN' ? 'border-l-indigo-500' : 'border-l-emerald-500';
-
-  const toggleGroup = (sku: string) => {
-    setExpandedSkus(prev => {
-      const next = new Set(prev);
-      if (next.has(sku)) next.delete(sku);
-      else next.add(sku);
-      return next;
-    });
-  };
 
   const switchTab = (next: 'IN' | 'CC') => {
     setTab(next);
-    setExpandedSkus(new Set());
     setEditingId(null);
   };
 
@@ -184,120 +166,106 @@ export default function History() {
 
       {filtered.length > 0 && (
         <div className="mb-3 text-xs font-medium text-slate-500">
-          {filtered.length} transaksi · {groupList.length} produk
+          {filtered.length} transaksi · {uniqueProducts} produk
         </div>
       )}
 
-      <div className="space-y-3">
-        {groupList.length === 0 ? (
-          <div className="text-center py-10 text-slate-400">
-            <List className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <div className="font-medium text-sm">Tidak ada data ditemukan</div>
-          </div>
-        ) : (
-          groupList.map(([sku, items]) => {
-            const isExpanded = expandedSkus.has(sku);
-            const groupQty = items.reduce((sum, t) => sum + t.qty, 0);
-            return (
-              <div
-                key={sku}
-                className={`bg-white rounded-xl border border-slate-200 border-l-4 ${accentBorder} overflow-hidden transition-all hover:shadow-md`}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(sku)}
-                  className="w-full flex items-center justify-between gap-3 p-4 text-left"
-                >
-                  <div className="min-w-0">
-                    <div className="font-bold text-slate-900 truncate">{items[0].product}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">SKU: {sku} · {items.length} transaksi</div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className={`text-xl font-black ${accentText}`}>{groupQty.toLocaleString()}</div>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-                  </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="border-t border-slate-100 divide-y divide-slate-100">
-                    {items.map(t => (
-                      <div key={t.id} className="px-4 py-3">
-                        {editingId === t.id ? (
-                          <div>
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                              <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Batch</label>
-                                <input
-                                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                                  value={editBatch}
-                                  onChange={(e) => setEditBatch(e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Qty</label>
-                                <input
-                                  className={`w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-bold focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all ${accentText}`}
-                                  value={editQtyRaw}
-                                  onChange={(e) => setEditQtyRaw(e.target.value)}
-                                  onBlur={() => setEditQtyRaw(calculateQty(editQtyRaw).toString())}
-                                />
-                              </div>
-                            </div>
-                            <div className="flex gap-2 justify-end">
-                              <button
-                                onClick={() => setEditingId(null)}
-                                disabled={mutatingId === t.id}
-                                className="px-3 py-1.5 flex items-center gap-1 text-xs font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 disabled:opacity-60"
-                              >
-                                <X className="w-3 h-3" /> Batal
-                              </button>
-                              <button
-                                onClick={() => saveEdit(t)}
-                                disabled={mutatingId === t.id}
-                                className={`px-3 py-1.5 flex items-center gap-1 text-xs font-semibold text-white rounded-lg ${tabBgClass} hover:opacity-90 disabled:opacity-60`}
-                              >
-                                <Save className="w-3 h-3" />
-                                {mutatingId === t.id ? 'Sync...' : 'Simpan'}
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-[10px] font-semibold">Batch {t.batch}</span>
-                                <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-semibold">{t.user}</span>
-                                <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-md text-[10px] font-medium">{formatDateShort(t.date)}</span>
-                              </div>
-                              <div className={`text-lg font-black ${accentText}`}>{t.qty}</div>
-                            </div>
-                            <div className="flex justify-end gap-3">
-                              <button
-                                onClick={() => startEdit(t)}
-                                className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors py-1"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" /> Edit
-                              </button>
-                              <button
-                                onClick={() => setPendingDelete(t)}
-                                disabled={mutatingId === t.id}
-                                className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 transition-colors py-1 disabled:opacity-60"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                {mutatingId === t.id ? 'Sync...' : 'Hapus'}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+      {filtered.length === 0 ? (
+        <div className="text-center py-10 text-slate-400">
+          <List className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <div className="font-medium text-sm">Tidak ada data ditemukan</div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                <th className="text-left px-3 py-2.5 font-semibold">Produk</th>
+                <th className="text-left px-2 py-2.5 font-semibold">Batch</th>
+                <th className="text-right px-2 py-2.5 font-semibold">Qty</th>
+                <th className="px-2 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtered.map(t => (
+                editingId === t.id ? (
+                  <tr key={t.id} className="bg-slate-50">
+                    <td className="px-3 py-2.5 align-top">
+                      <div className="font-semibold text-slate-900 leading-tight">{t.product}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{t.sku}</div>
+                    </td>
+                    <td className="px-2 py-2.5 align-top">
+                      <input
+                        className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        value={editBatch}
+                        onChange={(e) => setEditBatch(e.target.value)}
+                      />
+                    </td>
+                    <td className="px-2 py-2.5 align-top text-right">
+                      <input
+                        className={`w-20 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-right bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all ${accentText}`}
+                        value={editQtyRaw}
+                        onChange={(e) => setEditQtyRaw(e.target.value)}
+                        onBlur={() => setEditQtyRaw(calculateQty(editQtyRaw).toString())}
+                      />
+                    </td>
+                    <td className="px-2 py-2.5 align-top">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => saveEdit(t)}
+                          disabled={mutatingId === t.id}
+                          className={`p-1.5 text-white rounded-lg ${tabBgClass} hover:opacity-90 disabled:opacity-60 transition-all`}
+                          title="Simpan"
+                        >
+                          <Save className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          disabled={mutatingId === t.id}
+                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 disabled:opacity-60 transition-all"
+                          title="Batal"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-3 py-2.5">
+                      <div className="font-semibold text-slate-900 leading-tight">{t.product}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{t.sku} · {t.user} · {formatDateShort(t.date)}</div>
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <span className="inline-block px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-[10px] font-semibold whitespace-nowrap">{t.batch}</span>
+                    </td>
+                    <td className={`px-2 py-2.5 text-right text-base font-black ${accentText}`}>{t.qty}</td>
+                    <td className="px-2 py-2.5">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => startEdit(t)}
+                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setPendingDelete(t)}
+                          disabled={mutatingId === t.id}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-60"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {pendingDelete && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
