@@ -33,6 +33,7 @@ function Chip({ label, selected, onClick, color }: ChipProps) {
 export default function CycleCount() {
   const { products, addTransaction, dateCC, setDateCC, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const qtyInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
 
   const [sku, setSku] = useState('');
@@ -228,14 +229,17 @@ export default function CycleCount() {
             </div>
           </div>
 
-          {availableBatches.length >= 3 && (
+          {availableBatches.length >= 1 && (
             <div className="flex flex-wrap gap-1.5">
               {availableBatches.map(b => (
                 <Chip
                   key={b}
                   label={b}
                   selected={batch === b}
-                  onClick={() => setBatch(b)}
+                  onClick={() => {
+                    setBatch(b);
+                    setTimeout(() => qtyInputRef.current?.focus(), 50);
+                  }}
                   color="emerald"
                 />
               ))}
@@ -247,6 +251,7 @@ export default function CycleCount() {
               Qty Fisik <span className="text-slate-400 font-normal ml-1">10+5 atau 20*3</span>
             </label>
             <input
+              ref={qtyInputRef}
               className="w-full px-4 py-3.5 border-2 border-dashed border-teal-300 rounded-2xl text-center text-2xl font-bold text-teal-600 bg-gradient-to-br from-teal-50/50 to-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
               placeholder="0"
               value={qtyRaw}
