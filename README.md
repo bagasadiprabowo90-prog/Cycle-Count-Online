@@ -57,6 +57,16 @@ Deploy Apps Script sebagai Web App:
 - `npm run build` membuat build production frontend dan backend.
 - `npm start` menjalankan hasil build dari `dist/server.cjs`.
 
+## PWA
+
+Aplikasi sudah memiliki manifest dan service worker sederhana:
+
+- Bisa di-install dari browser mobile/desktop.
+- Asset aplikasi dicache agar pembukaan berikutnya lebih cepat.
+- Endpoint `/api/*` tidak dicache supaya transaksi, edit, delete, dan sync tetap selalu memakai data terbaru dari Google Sheets.
+
+Mode offline penuh belum diaktifkan. Simpan/edit/hapus tetap membutuhkan koneksi internet.
+
 ## Catatan Deploy
 
 Pastikan environment production memiliki `GOOGLE_SCRIPT_URL`. Untuk hosting yang menyediakan port dinamis, isi atau biarkan platform mengatur `PORT`.

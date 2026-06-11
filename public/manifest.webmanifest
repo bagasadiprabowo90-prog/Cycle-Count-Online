@@ -1,0 +1,19 @@
+{
+  "name": "Stock Opname Pro",
+  "short_name": "Opname Pro",
+  "description": "Aplikasi stock opname, cycle count, product in, dan scan barcode.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
