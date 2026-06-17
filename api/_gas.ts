@@ -5,25 +5,46 @@ export async function gasApi(action: string, data: any) {
     throw new Error('GOOGLE_SCRIPT_URL belum diatur di environment.');
   }
 
-  const response = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, data })
-  });
-  const text = await response.text();
-
-  let json: any;
   try {
-    json = JSON.parse(text);
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, data })
+    });
+
+    const text = await response.text();
+
+    // Check if response is HTML (error page from Apps Script)
+    if (text.trim().startsWith('<') && text.includes('Moved Temporarily')) {
+      throw new Error('Google Apps Script redirecting. Pastikan Apps Script di-deploy sebagai Web App dengan "Who has access: Anyone".');
+    }
+
+    if (text.trim().startsWith('<') && text.includes('Error')) {
+      throw new Error(`Google Apps Script error: ${text.slice(0, 200)}`);
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch (err) {
+      throw new Error(`Respons bukan JSON valid. Kemungkinan Apps Script belum di-deploy dengan benar. Response: ${text.slice(0, 160)}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(json.message || `Google Apps Script HTTP ${response.status}`);
+    }
+
+    return json;
   } catch (err) {
-    throw new Error(`Respons Google Apps Script bukan JSON valid: ${text.slice(0, 160)}`);
+    if (err instanceof Error) {
+      // Check for network/redirect issues
+      if (err.message.includes('fetch') || err.message.includes('redirect')) {
+        throw new Error('Gagal terhubung ke Google Apps Script. Pastikan URL sudah benar dan Apps Script di-deploy sebagai Web App.');
+      }
+      throw err;
+    }
+    throw new Error('Tidak bisa terhubung ke Google Apps Script.');
   }
-
-  if (!response.ok) {
-    throw new Error(json.message || `Google Apps Script HTTP ${response.status}`);
-  }
-
-  return json;
 }
 
 export function sendError(res: any, err: unknown, fallbackMessage: string) {
