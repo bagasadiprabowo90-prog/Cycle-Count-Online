@@ -1,4 +1,4 @@
-import { gasApi, methodNotAllowed, sendError } from '../_gas';
+import { gasApi, methodNotAllowed, sendError } from '../_gas.js';
 
 function getType(req: any): 'IN' | 'CC' {
   const rawType = Array.isArray(req.query.type) ? req.query.type[0] : req.query.type;

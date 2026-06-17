@@ -1,4 +1,4 @@
-import { gasApi, methodNotAllowed, sendError } from './_gas';
+import { gasApi, methodNotAllowed, sendError } from './_gas.js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'GET') {

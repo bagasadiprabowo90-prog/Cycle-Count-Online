@@ -1,4 +1,4 @@
-import { gasApi, methodNotAllowed, sendError } from './_gas';
+import { gasApi, methodNotAllowed, sendError } from './_gas.js';
 
 function normalizeHistoryItem(item: any, type: 'IN' | 'CC') {
   const id = String(item.rowId || item.id || '');
