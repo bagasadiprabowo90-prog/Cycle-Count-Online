@@ -5,14 +5,19 @@ import ProductIn from './views/ProductIn';
 import History from './views/History';
 import BottomNav from './components/BottomNav';
 import ToastHost from './components/ToastHost';
-import { AlertTriangle, Package, LogOut, RefreshCw, X } from 'lucide-react';
+import { AlertTriangle, Package, LogOut, RefreshCw, X, Wifi, WifiOff, CloudOff } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'CC' | 'IN' | 'HISTORY'>('CC');
-  const { user, login, logout, fetchProducts, fetchTransactions, syncCloud, isSyncing, syncError, clearSyncError, notify } = useStore();
+  const { user, login, logout, fetchProducts, fetchTransactions, syncCloud, isSyncing, syncError, clearSyncError, notify, isOnline, pendingCount, initialize } = useStore();
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // Initialize app on mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   useEffect(() => {
     if (user) {
@@ -115,8 +120,18 @@ export default function App() {
           </div>
         </div>
         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
-          <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
+          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-teal-400 animate-pulse' : 'bg-red-400'}`}></div>
           <span className="text-xs font-medium text-indigo-100">{user}</span>
+          {!isOnline && (
+            <span className="text-[10px] bg-red-500/30 text-red-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+              <WifiOff className="w-3 h-3" /> Offline
+            </span>
+          )}
+          {pendingCount > 0 && (
+            <span className="text-[10px] bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+              <CloudOff className="w-3 h-3" /> {pendingCount} pending
+            </span>
+          )}
           <span className="text-[10px] bg-teal-500/30 text-teal-200 px-2 py-0.5 rounded-full font-medium">Sheets Sync</span>
         </div>
       </header>

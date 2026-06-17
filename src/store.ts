@@ -1,10 +1,20 @@
 import { create } from 'zustand';
 import { Product, Transaction } from './types';
+import { getCached, setCache, isOnline } from './lib/cache';
+import {
+  queueTransaction,
+  startAutoSync,
+  stopAutoSync,
+  getPendingCount,
+  onSyncStatusChange,
+  forceSyncNow,
+} from './lib/syncManager';
 
 interface MutationResult {
   success: boolean;
   message: string;
   id?: string;
+  queued?: boolean;
 }
 
 export interface ToastMessage {
@@ -14,39 +24,61 @@ export interface ToastMessage {
 }
 
 interface AppState {
+  // User state
   user: string | null;
+
+  // Data state
   products: Product[];
   transactions: Transaction[];
+
+  // Date state
   dateIN: string;
   dateCC: string;
   dateHistory: string;
+
+  // Sync state
   isSyncing: boolean;
+  isOnline: boolean;
+  pendingCount: number;
   syncError: string | null;
+
+  // Toast state
   toasts: ToastMessage[];
+
+  // Actions
   clearSyncError: () => void;
   notify: (type: ToastMessage['type'], message: string) => void;
   dismissToast: (id: number) => void;
   login: (username: string) => void;
   logout: () => void;
-  fetchProducts: () => Promise<void>;
+
+  // Data fetching
+  fetchProducts: (forceRefresh?: boolean) => Promise<void>;
+  fetchTransactions: (forceRefresh?: boolean) => Promise<void>;
+
+  // Sync
   syncCloud: () => Promise<void>;
-  fetchTransactions: () => Promise<void>;
-  addTransaction: (record: Omit<Transaction, 'id' | 'timestamp'>) => Promise<MutationResult>;
-  updateTransaction: (id: string, type: 'IN' | 'CC', record: Partial<Transaction>) => Promise<MutationResult>;
-  deleteTransaction: (id: string, type: 'IN' | 'CC') => Promise<MutationResult>;
   setDateIN: (date: string) => void;
   setDateCC: (date: string) => void;
   setDateHistory: (date: string) => void;
+
+  // Transactions
+  addTransaction: (record: Omit<Transaction, 'id' | 'timestamp'>) => Promise<MutationResult>;
+  updateTransaction: (id: string, type: 'IN' | 'CC', record: Partial<Transaction>) => Promise<MutationResult>;
+  deleteTransaction: (id: string, type: 'IN' | 'CC') => Promise<MutationResult>;
+
+  // Init
+  initialize: () => void;
 }
 
 const getToday = () => {
   const d = new Date();
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-}
+};
 
-const getDateKey = (key: string, user: string | null) => user ? `${key}_${user}` : key;
-
-const getSavedDate = (key: string, user: string | null) => localStorage.getItem(getDateKey(key, user)) || getToday();
+const getDateKey = (key: string, user: string | null) => (user ? `${key}_${user}` : key);
+const getSavedDate = (key: string, user: string | null) =>
+  localStorage.getItem(getDateKey(key, user)) || getToday();
 
 const saveDate = (key: string, date: string) => {
   localStorage.setItem(key, date);
@@ -55,9 +87,9 @@ const saveDate = (key: string, date: string) => {
 
 const initialUser = localStorage.getItem('opname_user');
 
+// Read mutation result from response
 const readMutationResult = async (res: Response): Promise<MutationResult> => {
   let json: any = {};
-
   try {
     json = await res.json();
   } catch (err) {
@@ -67,21 +99,16 @@ const readMutationResult = async (res: Response): Promise<MutationResult> => {
   if (!res.ok || json.success !== true) {
     return {
       success: false,
-      message: json.message || 'Sinkronisasi ke Google Sheets gagal.'
+      message: json.message || 'Sinkronisasi ke Google Sheets gagal.',
     };
   }
 
   return {
     success: true,
     message: json.message || 'Sinkronisasi berhasil.',
-    id: json.id ? String(json.id) : undefined
+    id: json.id ? String(json.id) : undefined,
   };
 };
-
-const failedResult = (err: unknown): MutationResult => ({
-  success: false,
-  message: err instanceof Error ? err.message : 'Tidak bisa terhubung ke server sinkronisasi.'
-});
 
 export const useStore = create<AppState>((set, get) => ({
   user: initialUser,
@@ -91,8 +118,35 @@ export const useStore = create<AppState>((set, get) => ({
   dateCC: getSavedDate('opname_date_cc', initialUser),
   dateHistory: getSavedDate('opname_date_history', initialUser),
   isSyncing: false,
+  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  pendingCount: 0,
   syncError: null,
   toasts: [],
+
+  initialize: () => {
+    // Start auto sync
+    startAutoSync();
+
+    // Listen for sync status
+    onSyncStatusChange((status) => {
+      set({
+        isSyncing: status.syncing,
+        pendingCount: status.pending,
+      });
+    });
+
+    // Listen for online/offline
+    const handleOnline = () => set({ isOnline: true });
+    const handleOffline = () => set({ isOnline: false });
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+    }
+
+    // Initial pending count
+    getPendingCount().then((count) => set({ pendingCount: count }));
+  },
 
   login: (username: string) => {
     localStorage.setItem('opname_user', username);
@@ -100,63 +154,130 @@ export const useStore = create<AppState>((set, get) => ({
       user: username,
       dateIN: getSavedDate('opname_date_in', username),
       dateCC: getSavedDate('opname_date_cc', username),
-      dateHistory: getSavedDate('opname_date_history', username)
+      dateHistory: getSavedDate('opname_date_history', username),
     });
   },
 
   logout: () => {
     localStorage.removeItem('opname_user');
-    set({ user: null });
+    set({ user: null, products: [], transactions: [] });
   },
 
   clearSyncError: () => set({ syncError: null }),
 
   notify: (type, message) => {
     const id = Date.now() + Math.floor(Math.random() * 1000);
-    set(state => ({ toasts: [...state.toasts, { id, type, message }] }));
+    set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
     window.setTimeout(() => {
-      set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }));
+      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
     }, 4500);
   },
 
   dismissToast: (id: number) => {
-    set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }));
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
   },
 
-  setDateIN: (date: string) => set({ dateIN: saveDate(getDateKey('opname_date_in', get().user), date) }),
-  setDateCC: (date: string) => set({ dateCC: saveDate(getDateKey('opname_date_cc', get().user), date) }),
+  setDateIN: (date: string) =>
+    set({ dateIN: saveDate(getDateKey('opname_date_in', get().user), date) }),
+
+  setDateCC: (date: string) =>
+    set({ dateCC: saveDate(getDateKey('opname_date_cc', get().user), date) }),
+
   setDateHistory: (date: string) => {
     set({ dateHistory: saveDate(getDateKey('opname_date_history', get().user), date) });
     get().fetchTransactions();
   },
 
-  fetchProducts: async () => {
+  fetchProducts: async (forceRefresh = false) => {
+    // Try cache first if not forcing refresh
+    if (!forceRefresh) {
+      const cached = await getCached('products', 'master');
+      if (cached && cached.length > 0) {
+        set({ products: cached, syncError: null });
+        // Still fetch in background for freshness
+      }
+    }
+
     try {
       const res = await fetch('/api/products');
       const json = await res.json();
       if (json.success) {
-        set({ products: json.data, syncError: null });
+        const products = json.data || [];
+        set({ products, syncError: null });
+        // Update cache
+        await setCache('products', 'master', products);
       } else {
-        set({ syncError: json.message || 'Gagal mengambil master product.' });
+        // If API fails but we have cache, use it
+        const cached = await getCached('products', 'master');
+        if (cached && cached.length > 0) {
+          set({ products: cached, syncError: null });
+        } else {
+          set({ syncError: json.message || 'Gagal mengambil master product.' });
+        }
       }
     } catch (err) {
-      set({ syncError: err instanceof Error ? err.message : 'Gagal mengambil master product.' });
+      // Network error - use cache
+      const cached = await getCached('products', 'master');
+      if (cached && cached.length > 0) {
+        set({ products: cached, syncError: null });
+      } else {
+        set({
+          syncError: err instanceof Error ? err.message : 'Gagal mengambil master product.',
+        });
+      }
+    }
+  },
+
+  fetchTransactions: async (forceRefresh = false) => {
+    const date = get().dateHistory;
+    const cacheKey = `tx_${date}`;
+
+    // Try cache first
+    if (!forceRefresh) {
+      const cached = await getCached('transactions', cacheKey);
+      if (cached && cached.length > 0) {
+        set({ transactions: cached, syncError: null });
+      }
+    }
+
+    set({ isSyncing: true });
+    try {
+      const res = await fetch(`/api/transactions?date=${encodeURIComponent(date)}`);
+      const json = await res.json();
+
+      if (res.ok && json.success) {
+        const transactions = json.data || [];
+        set({ transactions, syncError: null });
+        await setCache('transactions', cacheKey, transactions);
+      } else {
+        const cached = await getCached('transactions', cacheKey);
+        if (cached && cached.length > 0) {
+          set({ transactions: cached, syncError: null });
+        } else {
+          set({ syncError: json.message || 'Gagal mengambil riwayat transaksi.' });
+        }
+      }
+    } catch (err) {
+      const cached = await getCached('transactions', cacheKey);
+      if (cached && cached.length > 0) {
+        set({ transactions: cached, syncError: null });
+      } else {
+        set({ syncError: err instanceof Error ? err.message : 'Gagal mengambil riwayat transaksi.' });
+      }
+    } finally {
+      set({ isSyncing: false });
     }
   },
 
   syncCloud: async () => {
     set({ isSyncing: true });
     try {
-      const res = await fetch('/api/sync', { method: 'POST' });
-      const result = await readMutationResult(res);
+      // Force sync pending queue first
+      await forceSyncNow();
 
-      if (!result.success) {
-        set({ syncError: result.message });
-        return;
-      }
-
-      await get().fetchProducts();
-      await get().fetchTransactions();
+      // Then refresh data
+      await get().fetchProducts(true);
+      await get().fetchTransactions(true);
       set({ syncError: null });
     } catch (err) {
       set({ syncError: err instanceof Error ? err.message : 'Gagal sinkronisasi cloud.' });
@@ -165,30 +286,24 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  fetchTransactions: async () => {
-    set({ isSyncing: true });
-    try {
-      const date = get().dateHistory;
-      const res = await fetch(`/api/transactions?date=${date}`);
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        set({ transactions: json.data, syncError: null });
-      } else {
-        set({ syncError: json.message || 'Gagal mengambil riwayat transaksi.' });
-      }
-    } catch (err) {
-      set({ syncError: err instanceof Error ? err.message : 'Gagal mengambil riwayat transaksi.' });
-    } finally {
-      set({ isSyncing: false });
-    }
-  },
-
   addTransaction: async (record) => {
-    const optimisticId = "optimistic_" + Date.now();
+    const optimisticId = 'optimistic_' + Date.now();
     const newTx = { ...record, id: optimisticId, timestamp: Date.now() } as Transaction;
     const previousTransactions = get().transactions;
-    set(state => ({ transactions: [newTx, ...state.transactions] }));
+
+    // Optimistic update
+    set((state) => ({ transactions: [newTx, ...state.transactions] }));
+
+    // If offline, queue it
+    if (!isOnline()) {
+      await queueTransaction(record.type, 'create', record, optimisticId);
+      return {
+        success: true,
+        message: 'Tersimpan offline. Akan disinkronkan saat online.',
+        id: optimisticId,
+        queued: true,
+      };
+    }
 
     try {
       const res = await fetch('/api/transactions', {
@@ -203,25 +318,44 @@ export const useStore = create<AppState>((set, get) => ({
         return result;
       }
 
+      // Update with real ID
       if (result.id) {
-        set(state => ({
-          transactions: state.transactions.map(t => t.id === optimisticId ? { ...t, id: result.id! } : t)
+        set((state) => ({
+          transactions: state.transactions.map((t) =>
+            t.id === optimisticId ? { ...t, id: result.id! } : t
+          ),
         }));
       }
 
       return result;
     } catch (err) {
-      const result = failedResult(err);
-      set({ transactions: previousTransactions, syncError: result.message });
-      return result;
+      // Network error - queue it
+      await queueTransaction(record.type, 'create', record, optimisticId);
+      return {
+        success: true,
+        message: 'Tersimpan offline. Akan disinkronkan saat online.',
+        id: optimisticId,
+        queued: true,
+      };
     }
   },
 
-  updateTransaction: async (id: string, type: 'IN' | 'CC', record: any) => {
+  updateTransaction: async (id, type, record) => {
     const previousTransactions = get().transactions;
-    set(state => ({
-      transactions: state.transactions.map(t => t.id === id ? { ...t, ...record } : t)
+
+    // Optimistic update
+    set((state) => ({
+      transactions: state.transactions.map((t) => (t.id === id ? { ...t, ...record } : t)),
     }));
+
+    if (!isOnline()) {
+      await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
+      return {
+        success: true,
+        message: 'Update tersimpan offline.',
+        queued: true,
+      };
+    }
 
     try {
       const res = await fetch(`/api/transactions/${id}?type=${type}`, {
@@ -238,18 +372,34 @@ export const useStore = create<AppState>((set, get) => ({
 
       return result;
     } catch (err) {
-      const result = failedResult(err);
-      set({ transactions: previousTransactions, syncError: result.message });
-      return result;
+      await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
+      return {
+        success: true,
+        message: 'Update tersimpan offline.',
+        queued: true,
+      };
     }
   },
 
-  deleteTransaction: async (id: string, type: 'IN' | 'CC') => {
+  deleteTransaction: async (id, type) => {
     const previousTransactions = get().transactions;
-    set(state => ({ transactions: state.transactions.filter(t => t.id !== id) }));
+
+    // Optimistic update
+    set((state) => ({ transactions: state.transactions.filter((t) => t.id !== id) }));
+
+    if (!isOnline()) {
+      await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
+      return {
+        success: true,
+        message: 'Hapus tersimpan offline.',
+        queued: true,
+      };
+    }
 
     try {
-      const res = await fetch(`/api/transactions/${id}?type=${type}`, { method: 'DELETE' });
+      const res = await fetch(`/api/transactions/${id}?type=${type}`, {
+        method: 'DELETE',
+      });
       const result = await readMutationResult(res);
 
       if (!result.success) {
@@ -259,9 +409,12 @@ export const useStore = create<AppState>((set, get) => ({
 
       return result;
     } catch (err) {
-      const result = failedResult(err);
-      set({ transactions: previousTransactions, syncError: result.message });
-      return result;
+      await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
+      return {
+        success: true,
+        message: 'Hapus tersimpan offline.',
+        queued: true,
+      };
     }
-  }
+  },
 }));
