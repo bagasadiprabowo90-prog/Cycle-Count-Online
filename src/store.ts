@@ -80,33 +80,8 @@ const getToday = () => {
 };
 
 const getDateKey = (key: string, user: string | null) => (user ? `${key}_${user}` : key);
-
-// Check if saved date is today or in the past (within last 7 days)
-const isValidSavedDate = (savedDate: string | null): boolean => {
-  if (!savedDate) return false;
-
-  try {
-    const [month, day, year] = savedDate.split('/').map(Number);
-    const saved = new Date(year, month - 1, day);
-    const today = new Date();
-
-    // Reset time to start of day
-    saved.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-
-    // Valid if saved date is today or in the past (within 7 days)
-    const diffDays = Math.floor((today.getTime() - saved.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 7;
-  } catch {
-    return false;
-  }
-};
-
-const getSavedDate = (key: string, user: string | null) => {
-  const saved = localStorage.getItem(getDateKey(key, user));
-  // Only use saved date if it's today or within last 7 days, otherwise default to today
-  return isValidSavedDate(saved) ? saved! : getToday();
-};
+const getSavedDate = (key: string, user: string | null) =>
+  localStorage.getItem(getDateKey(key, user)) || getToday();
 
 const saveDate = (key: string, date: string) => {
   localStorage.setItem(key, date);
