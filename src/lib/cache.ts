@@ -70,7 +70,7 @@ function openDB(): Promise<IDBDatabase> {
 // Cache TTL dalam milliseconds
 const CACHE_TTL = {
   PRODUCTS: 5 * 60 * 1000, // 5 menit
-  TRANSACTIONS: 1 * 60 * 1000, // 1 menit
+  TRANSACTIONS: 5 * 60 * 1000, // 5 menit
 };
 
 /**
