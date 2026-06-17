@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState, type FormEvent, type Key } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect, type FormEvent, type Key } from 'react';
 import { useStore } from '../store';
 import { Camera, Save, X, CalendarDays } from 'lucide-react';
 import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
@@ -32,7 +32,9 @@ function Chip({ label, selected, onClick }: ChipProps) {
 export default function ProductIn() {
   const { products, addTransaction, dateIN, setDateIN, resetDateIN, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const qtyInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const [sku, setSku] = useState('');
   const [productName, setProductName] = useState('');
@@ -42,6 +44,33 @@ export default function ProductIn() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Handle keyboard visibility on mobile
+  useEffect(() => {
+    const handleViewportChange = () => {
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const documentHeight = document.documentElement.clientHeight;
+      const keyboardVisible = viewportHeight < documentHeight - 100;
+      setIsKeyboardVisible(keyboardVisible);
+
+      if (keyboardVisible && qtyInputRef.current) {
+        setTimeout(() => {
+          qtyInputRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }, 100);
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportChange);
+    window.addEventListener('resize', handleViewportChange);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('resize', handleViewportChange);
+    };
+  }, []);
 
   const filteredProducts = search.length >= 2
     ? products.filter((p: Product) =>
@@ -163,7 +192,7 @@ export default function ProductIn() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+      <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm ${isKeyboardVisible ? 'pb-28' : ''}`}>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="relative">
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Cari Product Masuk</label>
@@ -262,22 +291,35 @@ export default function ProductIn() {
               Qty Masuk <span className="text-slate-400 font-normal ml-1">10+5 atau 20*3</span>
             </label>
             <input
+              ref={qtyInputRef}
               className="w-full px-4 py-3.5 border-2 border-dashed border-indigo-300 rounded-2xl text-center text-2xl font-bold text-indigo-600 bg-gradient-to-br from-indigo-50/50 to-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
               placeholder="0"
               value={qtyRaw}
               onChange={(e) => setQtyRaw(e.target.value)}
+              onFocus={() => {
+                // Scroll into view when focused
+                setTimeout(() => {
+                  qtyInputRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  });
+                }, 100);
+              }}
               onBlur={() => setQtyRaw(calculateQty(qtyRaw).toString())}
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? 'Menyimpan...' : 'Simpan Product In'}
-          </button>
+          {/* Sticky submit button - always visible above keyboard */}
+          <div className={`${isKeyboardVisible ? 'fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 shadow-lg' : ''}`}>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={`w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? 'Menyimpan...' : 'Simpan Product In'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

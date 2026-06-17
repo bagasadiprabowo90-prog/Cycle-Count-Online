@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { Trash2, List, Save, X, Edit3, Search, CalendarDays } from 'lucide-react';
 import { toYMD, toMDY, calculateQty, formatDateShort, isToday } from '../lib/calc';
@@ -7,6 +7,8 @@ import { Transaction } from '../types';
 export default function History() {
   const { products, transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, resetDateHistory, isSyncing, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const [tab, setTab] = useState<'IN' | 'CC'>('CC');
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,6 +18,24 @@ export default function History() {
   const [editQtyRaw, setEditQtyRaw] = useState('');
   const [mutatingId, setMutatingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
+
+  // Handle keyboard visibility on mobile
+  useEffect(() => {
+    const handleViewportChange = () => {
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const documentHeight = document.documentElement.clientHeight;
+      const keyboardVisible = viewportHeight < documentHeight - 100;
+      setIsKeyboardVisible(keyboardVisible);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportChange);
+    window.addEventListener('resize', handleViewportChange);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('resize', handleViewportChange);
+    };
+  }, []);
 
   const filtered = transactions.filter(t => {
     if (t.type !== tab) return false;
@@ -43,6 +63,13 @@ export default function History() {
     setEditingId(t.id);
     setEditBatch(t.batch);
     setEditQtyRaw(t.qty.toString());
+    // Scroll the table into view when editing starts on mobile
+    setTimeout(() => {
+      tableRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 100);
   };
 
   const getBatchOptions = (t: Transaction) => {
@@ -214,7 +241,7 @@ export default function History() {
           <div className="font-medium text-sm">Tidak ada data ditemukan</div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div ref={tableRef} className={`bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm ${isKeyboardVisible ? 'pb-32' : ''}`}>
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
@@ -258,6 +285,15 @@ export default function History() {
                         className={`w-20 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-right bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all ${accentText}`}
                         value={editQtyRaw}
                         onChange={(e) => setEditQtyRaw(e.target.value)}
+                        onFocus={() => {
+                          // Scroll into view when focused on mobile
+                          setTimeout(() => {
+                            tableRef.current?.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'center',
+                            });
+                          }, 100);
+                        }}
                         onBlur={() => setEditQtyRaw(calculateQty(editQtyRaw).toString())}
                       />
                     </td>
