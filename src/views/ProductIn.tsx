@@ -34,6 +34,7 @@ export default function ProductIn() {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
   const batchInputRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
@@ -44,7 +45,6 @@ export default function ProductIn() {
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Handle keyboard visibility on mobile
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function ProductIn() {
     else input.click();
   };
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSave = (e: FormEvent) => {
     e.preventDefault();
     const finalQty = calculateQty(qtyRaw);
     if (!sku || !batch || finalQty <= 0) {
@@ -122,8 +122,8 @@ export default function ProductIn() {
 
     const realBarcode = products.find(p => p.sku === sku && p.batch === batch)?.barcode || `NEW-${sku}-${batch}`;
 
-    setIsSaving(true);
-    const result = await addTransaction({
+    // Optimistic background save
+    addTransaction({
       type: 'IN',
       date: dateIN,
       barcode: realBarcode,
@@ -132,16 +132,23 @@ export default function ProductIn() {
       batch,
       qty: finalQty,
       user: user!
+    }).then((result) => {
+      if (!result.success) {
+        notify('error', `Gagal sync: ${result.message}`);
+      } else {
+        notify('success', 'Product In berhasil disimpan.');
+      }
+    }).catch(() => {
+      notify('error', 'Gagal menyimpan transaksi.');
     });
-    setIsSaving(false);
 
-    if (!result.success) {
-      notify('error', `Gagal sync: ${result.message}`);
-      return;
-    }
-
-    setSku(''); setProductName(''); setBatch(''); setQtyRaw('');
-    notify('success', 'Product In berhasil disimpan.');
+    // Reset input fields instantly so user can enter the next transaction immediately
+    setSku('');
+    setProductName('');
+    setBatch('');
+    setQtyRaw('');
+    setSearch('');
+    setTimeout(() => searchRef.current?.focus(), 50);
   };
 
   return (
@@ -202,6 +209,7 @@ export default function ProductIn() {
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <input
+                  ref={searchRef}
                   className="w-full pl-3 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
                   placeholder="Ketik SKU atau Nama..."
                   value={search}
@@ -316,15 +324,13 @@ export default function ProductIn() {
             />
           </div>
 
-          {/* Sticky submit button - always visible above keyboard */}
           <div className={`${isKeyboardVisible ? 'fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 shadow-lg' : ''}`}>
             <button
               type="submit"
-              disabled={isSaving}
-              className={`w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
+              className={`w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex justify-center items-center gap-2 ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Menyimpan...' : 'Simpan Product In'}
+              Simpan Product In
             </button>
           </div>
         </form>

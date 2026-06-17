@@ -20,7 +20,6 @@ export default function History() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBatch, setEditBatch] = useState('');
   const [editQtyRaw, setEditQtyRaw] = useState('');
-  const [mutatingId, setMutatingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
 
   const filtered = transactions.filter(t => {
@@ -74,40 +73,49 @@ export default function History() {
     else input.click();
   };
 
-  const saveEdit = async (t: Transaction) => {
+  const saveEdit = (t: Transaction) => {
     const finalQty = calculateQty(editQtyRaw);
     if (finalQty <= 0 || !editBatch) {
       notify('error', 'Batch dan Qty harus diisi dengan benar.');
       return;
     }
     const selectedProduct = products.find(p => p.sku === t.sku && p.batch === editBatch);
-    setMutatingId(t.id);
-    const result = await updateTransaction(t.id, t.type, {
+    
+    // Close editing instantly
+    setEditingId(null);
+
+    // Update in background
+    updateTransaction(t.id, t.type, {
       ...t,
       barcode: selectedProduct?.barcode || t.barcode,
       product: selectedProduct?.product || t.product,
       batch: editBatch,
       qty: finalQty
+    }).then((result) => {
+      if (!result.success) {
+        notify('error', `Gagal update: ${result.message}`);
+      } else {
+        notify('success', 'Data berhasil diupdate.');
+      }
+    }).catch(() => {
+      notify('error', 'Terjadi kesalahan saat mengupdate.');
     });
-    setMutatingId(null);
-    if (!result.success) {
-      notify('error', `Gagal update: ${result.message}`);
-      return;
-    }
-    setEditingId(null);
-    notify('success', 'Data berhasil diupdate.');
   };
 
-  const handleDelete = async (t: Transaction) => {
-    setMutatingId(t.id);
-    const result = await deleteTransaction(t.id, t.type);
-    setMutatingId(null);
+  const handleDelete = (t: Transaction) => {
+    // Hide confirmation dialog instantly
     setPendingDelete(null);
-    if (!result.success) {
-      notify('error', `Gagal hapus: ${result.message}`);
-      return;
-    }
-    notify('success', 'Data berhasil dihapus.');
+
+    // Delete in background
+    deleteTransaction(t.id, t.type).then((result) => {
+      if (!result.success) {
+        notify('error', `Gagal hapus: ${result.message}`);
+      } else {
+        notify('success', 'Data berhasil dihapus.');
+      }
+    }).catch(() => {
+      notify('error', 'Terjadi kesalahan saat menghapus.');
+    });
   };
 
   return (
@@ -279,16 +287,14 @@ export default function History() {
                     </div>
                     <button
                       onClick={() => saveEdit(t)}
-                      disabled={mutatingId === t.id}
-                      className={`px-2.5 py-1 text-white rounded text-[11px] font-semibold ${tabBgClass} disabled:opacity-60 flex items-center gap-1 shrink-0`}
+                      className={`px-2.5 py-1 text-white rounded text-[11px] font-semibold ${tabBgClass} flex items-center gap-1 shrink-0`}
                     >
                       <Save className="w-3 h-3" />
                       Save
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      disabled={mutatingId === t.id}
-                      className="p-1 bg-slate-200 text-slate-500 rounded disabled:opacity-60 shrink-0"
+                      className="p-1 bg-slate-200 text-slate-500 rounded shrink-0"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -321,8 +327,7 @@ export default function History() {
                 </button>
                 <button
                   onClick={() => setPendingDelete(t)}
-                  disabled={mutatingId === t.id}
-                  className="p-1 text-slate-300 hover:text-red-500 rounded transition-colors disabled:opacity-50"
+                  className="p-1 text-slate-300 hover:text-red-500 rounded transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -343,17 +348,15 @@ export default function History() {
             <div className="mt-3 flex justify-end gap-2">
               <button
                 onClick={() => setPendingDelete(null)}
-                disabled={mutatingId === pendingDelete.id}
-                className="px-3 py-1.5 text-[11px] font-semibold bg-slate-100 text-slate-600 rounded-lg disabled:opacity-60"
+                className="px-3 py-1.5 text-[11px] font-semibold bg-slate-100 text-slate-600 rounded-lg"
               >
                 Batal
               </button>
               <button
                 onClick={() => handleDelete(pendingDelete)}
-                disabled={mutatingId === pendingDelete.id}
-                className="px-3 py-1.5 text-[11px] font-semibold bg-red-500 text-white rounded-lg disabled:opacity-60"
+                className="px-3 py-1.5 text-[11px] font-semibold bg-red-500 text-white rounded-lg"
               >
-                {mutatingId === pendingDelete.id ? 'Menghapus...' : 'Hapus'}
+                Hapus
               </button>
             </div>
           </div>

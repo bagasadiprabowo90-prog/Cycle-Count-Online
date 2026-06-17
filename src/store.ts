@@ -311,7 +311,6 @@ export const useStore = create<AppState>((set, get) => ({
   addTransaction: async (record) => {
     const optimisticId = 'optimistic_' + Date.now();
     const newTx = { ...record, id: optimisticId, timestamp: Date.now() } as Transaction;
-    const previousTransactions = get().transactions;
 
     // Optimistic update
     set((state) => ({ transactions: [newTx, ...state.transactions] }));
@@ -336,7 +335,11 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await readMutationResult(res);
 
       if (!result.success) {
-        set({ transactions: previousTransactions, syncError: result.message });
+        // Rollback only this transaction
+        set((state) => ({
+          transactions: state.transactions.filter((t) => t.id !== optimisticId),
+          syncError: result.message
+        }));
         return result;
       }
 
@@ -363,7 +366,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateTransaction: async (id, type, record) => {
-    const previousTransactions = get().transactions;
+    const previousTx = get().transactions.find((t) => t.id === id);
+    if (!previousTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
 
     // Optimistic update
     set((state) => ({
@@ -388,7 +392,11 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await readMutationResult(res);
 
       if (!result.success) {
-        set({ transactions: previousTransactions, syncError: result.message });
+        // Rollback only this transaction
+        set((state) => ({
+          transactions: state.transactions.map((t) => (t.id === id ? previousTx : t)),
+          syncError: result.message
+        }));
         return result;
       }
 
@@ -404,7 +412,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteTransaction: async (id, type) => {
-    const previousTransactions = get().transactions;
+    const deletedTx = get().transactions.find((t) => t.id === id);
+    if (!deletedTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
 
     // Optimistic update
     set((state) => ({ transactions: state.transactions.filter((t) => t.id !== id) }));
@@ -425,7 +434,11 @@ export const useStore = create<AppState>((set, get) => ({
       const result = await readMutationResult(res);
 
       if (!result.success) {
-        set({ transactions: previousTransactions, syncError: result.message });
+        // Rollback: put the deleted transaction back and sort by timestamp desc
+        set((state) => ({
+          transactions: [...state.transactions, deletedTx].sort((a, b) => b.timestamp - a.timestamp),
+          syncError: result.message
+        }));
         return result;
       }
 
