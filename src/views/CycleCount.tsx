@@ -34,6 +34,7 @@ export default function CycleCount() {
   const { products, addTransaction, dateCC, setDateCC, resetDateCC, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
+  const batchInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -92,6 +93,8 @@ export default function CycleCount() {
     setBatch(p.batch);
     setSearch('');
     setShowDropdown(false);
+    // Auto-focus ke batch input setelah pilih product
+    setTimeout(() => batchInputRef.current?.focus(), 50);
   };
 
   const handleScan = (code: string) => {
@@ -278,6 +281,7 @@ export default function CycleCount() {
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">Batch</label>
               <input
+                ref={batchInputRef}
                 className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all font-medium"
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}

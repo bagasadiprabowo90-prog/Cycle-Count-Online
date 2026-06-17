@@ -33,6 +33,7 @@ export default function ProductIn() {
   const { products, addTransaction, dateIN, setDateIN, resetDateIN, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
+  const batchInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
@@ -89,6 +90,8 @@ export default function ProductIn() {
     setBatch(p.batch);
     setSearch('');
     setShowDropdown(false);
+    // Auto-focus ke batch input setelah pilih product
+    setTimeout(() => batchInputRef.current?.focus(), 50);
   };
 
   const handleScan = (code: string) => {
@@ -265,6 +268,7 @@ export default function ProductIn() {
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">Batch</label>
               <input
+                ref={batchInputRef}
                 className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all font-medium"
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
@@ -273,14 +277,17 @@ export default function ProductIn() {
             </div>
           </div>
 
-          {availableBatches.length >= 3 && (
+          {availableBatches.length >= 1 && (
             <div className="flex flex-wrap gap-1.5">
               {availableBatches.map(b => (
                 <Chip
                   key={b}
                   label={b}
                   selected={batch === b}
-                  onClick={() => setBatch(b)}
+                  onClick={() => {
+                    setBatch(b);
+                    setTimeout(() => qtyInputRef.current?.focus(), 50);
+                  }}
                 />
               ))}
             </div>
