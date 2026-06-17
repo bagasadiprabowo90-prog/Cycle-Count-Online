@@ -54,3 +54,21 @@ export function toMDY(ymd: string) {
   const parts = ymd.split('-');
   return `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}/${parts[0]}`;
 }
+
+export function isToday(mdy: string): boolean {
+  if (!mdy || !mdy.includes('/')) return false;
+
+  try {
+    const [month, day, year] = mdy.split('/').map(Number);
+    const saved = new Date(year, month - 1, day);
+    const today = new Date();
+
+    // Reset time to start of day
+    saved.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    return saved.getTime() === today.getTime();
+  } catch {
+    return false;
+  }
+}

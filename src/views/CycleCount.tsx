@@ -1,7 +1,7 @@
 import { lazy, Suspense, useRef, useState, type FormEvent, type Key } from 'react';
 import { useStore } from '../store';
-import { Camera, CheckSquare, X } from 'lucide-react';
-import { calculateQty, toYMD, toMDY, formatDateShort } from '../lib/calc';
+import { Camera, CheckSquare, X, CalendarDays } from 'lucide-react';
+import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
 import { Product } from '../types';
 
 const ScannerModal = lazy(() => import('../components/ScannerModal'));
@@ -31,7 +31,7 @@ function Chip({ label, selected, onClick, color }: ChipProps) {
 }
 
 export default function CycleCount() {
-  const { products, addTransaction, dateCC, setDateCC, user, notify } = useStore();
+  const { products, addTransaction, dateCC, setDateCC, resetDateCC, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const qtyInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
@@ -134,27 +134,44 @@ export default function CycleCount() {
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-base font-bold text-slate-900">Cycle Count</h2>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={openDatePicker}
-            className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-              <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span className="font-medium">{formatDateShort(dateCC)}</span>
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-            value={toYMD(dateCC)}
-            onChange={(e) => {
-              if (e.target.value) setDateCC(toMDY(e.target.value));
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={openDatePicker}
+              className={`flex items-center gap-1.5 border text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer transition-all ${
+                isToday(dateCC)
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span className="font-medium">{formatDateShort(dateCC)}</span>
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+              value={toYMD(dateCC)}
+              onChange={(e) => {
+                if (e.target.value) setDateCC(toMDY(e.target.value));
+              }}
+            />
+          </div>
+          {!isToday(dateCC) && (
+            <button
+              type="button"
+              onClick={resetDateCC}
+              className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
+              title="Kembali ke hari ini"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Hari Ini</span>
+            </button>
+          )}
         </div>
       </div>
 

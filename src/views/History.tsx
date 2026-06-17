@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store';
-import { Trash2, List, Save, X, Edit3, Search } from 'lucide-react';
-import { toYMD, toMDY, calculateQty, formatDateShort } from '../lib/calc';
+import { Trash2, List, Save, X, Edit3, Search, CalendarDays } from 'lucide-react';
+import { toYMD, toMDY, calculateQty, formatDateShort, isToday } from '../lib/calc';
 import { Transaction } from '../types';
 
 export default function History() {
-  const { products, transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, isSyncing, notify } = useStore();
+  const { products, transactions, deleteTransaction, updateTransaction, dateHistory, setDateHistory, resetDateHistory, isSyncing, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [tab, setTab] = useState<'IN' | 'CC'>('CC');
@@ -114,27 +114,44 @@ export default function History() {
           Riwayat
           {isSyncing && <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />}
         </h2>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={openDatePicker}
-            className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-              <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span className="font-medium">{formatDateShort(dateHistory)}</span>
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-            value={toYMD(dateHistory)}
-            onChange={(e) => {
-              if (e.target.value) setDateHistory(toMDY(e.target.value));
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={openDatePicker}
+              className={`flex items-center gap-1.5 border text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer transition-all ${
+                isToday(dateHistory)
+                  ? 'bg-teal-50 border-teal-200 text-teal-700'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span className="font-medium">{formatDateShort(dateHistory)}</span>
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+              value={toYMD(dateHistory)}
+              onChange={(e) => {
+                if (e.target.value) setDateHistory(toMDY(e.target.value));
+              }}
+            />
+          </div>
+          {!isToday(dateHistory) && (
+            <button
+              type="button"
+              onClick={resetDateHistory}
+              className="flex items-center gap-1 bg-teal-500 hover:bg-teal-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
+              title="Kembali ke hari ini"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Hari Ini</span>
+            </button>
+          )}
         </div>
       </div>
 

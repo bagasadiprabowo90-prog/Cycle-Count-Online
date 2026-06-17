@@ -1,7 +1,7 @@
 import { lazy, Suspense, useRef, useState, type FormEvent, type Key } from 'react';
 import { useStore } from '../store';
-import { Camera, Save, X } from 'lucide-react';
-import { calculateQty, toYMD, toMDY, formatDateShort } from '../lib/calc';
+import { Camera, Save, X, CalendarDays } from 'lucide-react';
+import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
 import { Product } from '../types';
 
 const ScannerModal = lazy(() => import('../components/ScannerModal'));
@@ -30,7 +30,7 @@ function Chip({ label, selected, onClick }: ChipProps) {
 }
 
 export default function ProductIn() {
-  const { products, addTransaction, dateIN, setDateIN, user, notify } = useStore();
+  const { products, addTransaction, dateIN, setDateIN, resetDateIN, user, notify } = useStore();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
 
@@ -122,27 +122,44 @@ export default function ProductIn() {
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-base font-bold text-slate-900">Product In</h2>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={openDatePicker}
-            className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-              <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span className="font-medium">{formatDateShort(dateIN)}</span>
-          </button>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-            value={toYMD(dateIN)}
-            onChange={(e) => {
-              if (e.target.value) setDateIN(toMDY(e.target.value));
-            }}
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={openDatePicker}
+              className={`flex items-center gap-1.5 border text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer transition-all ${
+                isToday(dateIN)
+                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                  : 'bg-white border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span className="font-medium">{formatDateShort(dateIN)}</span>
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+              value={toYMD(dateIN)}
+              onChange={(e) => {
+                if (e.target.value) setDateIN(toMDY(e.target.value));
+              }}
+            />
+          </div>
+          {!isToday(dateIN) && (
+            <button
+              type="button"
+              onClick={resetDateIN}
+              className="flex items-center gap-1 bg-indigo-500 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
+              title="Kembali ke hari ini"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Hari Ini</span>
+            </button>
+          )}
         </div>
       </div>
 
