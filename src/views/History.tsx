@@ -256,65 +256,75 @@ export default function History() {
                 const batchOptions = getBatchOptions(t);
 
                 return editingId === t.id ? (
-                  <tr key={t.id} className="bg-slate-50">
-                    <td className="px-3 py-2.5 align-top">
-                      <div className="font-semibold text-slate-900 leading-tight">{t.product}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{t.sku}</div>
-                    </td>
-                    <td className="px-2 py-2.5 align-top">
-                      {t.type === 'CC' && batchOptions.length > 0 ? (
-                        <select
-                          className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          value={editBatch}
-                          onChange={(e) => setEditBatch(e.target.value)}
-                        >
-                          {batchOptions.map(batch => (
-                            <option key={batch} value={batch}>{batch}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          className="w-24 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          value={editBatch}
-                          onChange={(e) => setEditBatch(e.target.value)}
-                        />
-                      )}
-                    </td>
-                    <td className="px-2 py-2.5 align-top text-right">
-                      <input
-                        className={`w-20 px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-right bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all ${accentText}`}
-                        value={editQtyRaw}
-                        onChange={(e) => setEditQtyRaw(e.target.value)}
-                        onFocus={() => {
-                          // Scroll into view when focused on mobile
-                          setTimeout(() => {
-                            tableRef.current?.scrollIntoView({
-                              behavior: 'smooth',
-                              block: 'center',
-                            });
-                          }, 100);
-                        }}
-                        onBlur={() => setEditQtyRaw(calculateQty(editQtyRaw).toString())}
-                      />
-                    </td>
-                    <td className="px-2 py-2.5 align-top">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => saveEdit(t)}
-                          disabled={mutatingId === t.id}
-                          className={`p-1.5 text-white rounded-lg ${tabBgClass} hover:opacity-90 disabled:opacity-60 transition-all`}
-                          title="Simpan"
-                        >
-                          <Save className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          disabled={mutatingId === t.id}
-                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 disabled:opacity-60 transition-all"
-                          title="Batal"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                  <tr key={t.id} className="bg-indigo-50/60">
+                    <td colSpan={4} className="px-3 py-2.5">
+                      {/* Product info - compact */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-slate-900 text-xs leading-tight truncate">{t.product}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{t.sku}</div>
+                        </div>
+                      </div>
+                      {/* Edit controls - horizontal row */}
+                      <div className="flex items-center gap-2">
+                        {/* Batch */}
+                        <div className="flex-1 min-w-0">
+                          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5 block">Batch</label>
+                          {t.type === 'CC' && batchOptions.length > 0 ? (
+                            <select
+                              className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                              value={editBatch}
+                              onChange={(e) => setEditBatch(e.target.value)}
+                            >
+                              {batchOptions.map(batch => (
+                                <option key={batch} value={batch}>{batch}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                              value={editBatch}
+                              onChange={(e) => setEditBatch(e.target.value)}
+                            />
+                          )}
+                        </div>
+                        {/* Qty */}
+                        <div className="w-20 shrink-0">
+                          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5 block">Qty</label>
+                          <input
+                            className={`w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-right bg-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all ${accentText}`}
+                            value={editQtyRaw}
+                            onChange={(e) => setEditQtyRaw(e.target.value)}
+                            inputMode="numeric"
+                            onFocus={(e) => {
+                              e.target.select();
+                              setTimeout(() => {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }, 150);
+                            }}
+                            onBlur={() => setEditQtyRaw(calculateQty(editQtyRaw).toString())}
+                          />
+                        </div>
+                        {/* Action buttons */}
+                        <div className="flex gap-1 shrink-0 self-end">
+                          <button
+                            onClick={() => saveEdit(t)}
+                            disabled={mutatingId === t.id}
+                            className={`px-3 py-1.5 text-white rounded-lg text-xs font-semibold ${tabBgClass} hover:opacity-90 disabled:opacity-60 transition-all flex items-center gap-1`}
+                            title="Simpan"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Save</span>
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            disabled={mutatingId === t.id}
+                            className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 disabled:opacity-60 transition-all"
+                            title="Batal"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
