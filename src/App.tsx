@@ -93,7 +93,7 @@ export default function App() {
   }
 
   return (
-    <div className="pb-24">
+    <div className="pb-28 pb-safe">
       <ToastHost />
       {/* Header */}
       <header className="bg-gradient-to-br from-slate-900 via-indigo-900 to-teal-900 text-white p-4 sticky top-0 z-20 shadow-xl">

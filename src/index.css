@@ -24,3 +24,26 @@ body {
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
 }
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+@utility mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+@utility mt-safe {
+  margin-top: env(safe-area-inset-top);
+}
+@utility bottom-safe {
+  bottom: env(safe-area-inset-bottom);
+}
+
