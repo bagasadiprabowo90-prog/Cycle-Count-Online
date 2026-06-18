@@ -14,17 +14,25 @@ function normalizeHistoryItem(item: any, type: 'IN' | 'CC') {
 async function ensureMasterBatch(record: any) {
   if (record.type !== 'IN' || !record.sku || !record.product || !record.batch) return;
 
-  const response = await gasApi('addNewBatch', {
-    record: {
-      barcode: record.barcode || `NEW-${record.sku}-${record.batch}`,
-      sku: record.sku,
-      product: record.product,
-      batch: record.batch
-    }
-  });
+  // Hanya daftarkan ke master batch jika merupakan batch baru (barcode diawali 'NEW-')
+  const barcode = String(record.barcode || '');
+  if (!barcode.startsWith('NEW-')) return;
 
-  if (response.success !== true) {
-    throw new Error(response.message || 'Gagal menambahkan batch baru ke master product.');
+  try {
+    const response = await gasApi('addNewBatch', {
+      record: {
+        barcode: record.barcode || `NEW-${record.sku}-${record.batch}`,
+        sku: record.sku,
+        product: record.product,
+        batch: record.batch
+      }
+    });
+
+    if (response.success !== true) {
+      console.warn('[Sync Warning] addNewBatch gagal atau belum diaktifkan:', response.message);
+    }
+  } catch (err) {
+    console.warn('[Sync Warning] Gagal menghubungi endpoint addNewBatch:', err instanceof Error ? err.message : err);
   }
 }
 

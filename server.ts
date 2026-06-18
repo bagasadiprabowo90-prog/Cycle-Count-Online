@@ -115,16 +115,24 @@ async function ensureMasterBatch(record: any) {
   if (record.type !== 'IN' || !normalizeText(record.sku) || !normalizeText(record.product) || !normalizeText(record.batch)) return;
   if (hasCachedProductBatch(record) && !normalizeText(record.barcode).startsWith('NEW-')) return;
 
-  const response = await gasApi('addNewBatch', {
-    record: {
-      barcode: normalizeText(record.barcode) || `NEW-${normalizeText(record.sku)}-${normalizeText(record.batch)}`,
-      sku: normalizeText(record.sku),
-      product: normalizeText(record.product),
-      batch: normalizeText(record.batch)
+  try {
+    const response = await gasApi('addNewBatch', {
+      record: {
+        barcode: normalizeText(record.barcode) || `NEW-${normalizeText(record.sku)}-${normalizeText(record.batch)}`,
+        sku: normalizeText(record.sku),
+        product: normalizeText(record.product),
+        batch: normalizeText(record.batch)
+      }
+    });
+    
+    if (response.success === true) {
+      addCachedProductBatch(record);
+    } else {
+      console.warn('[Sync Warning] addNewBatch gagal atau belum diaktifkan:', response.message);
     }
-  });
-  assertGasSuccess(response, 'Gagal menambahkan batch baru ke master product');
-  addCachedProductBatch(record);
+  } catch (err) {
+    console.warn('[Sync Warning] Gagal menghubungi endpoint addNewBatch:', err instanceof Error ? err.message : err);
+  }
 }
 
 function normalizeTransaction(record: any, fallback: any = {}) {
