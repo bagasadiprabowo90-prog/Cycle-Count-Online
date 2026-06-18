@@ -314,6 +314,8 @@ export default function History() {
                     <span className="text-[9px] font-semibold text-slate-400">{t.sku}</span>
                     <span className="text-[9px] text-slate-300">·</span>
                     <span className="px-1 py-px bg-amber-50 text-amber-600 rounded text-[9px] font-semibold leading-none">{t.batch}</span>
+                    <span className="text-[9px] text-slate-300">·</span>
+                    <span className="text-[9px] text-slate-500 font-medium">{formatDateShort(t.date)}</span>
                   </div>
                 </div>
                 {/* Qty */}
