@@ -4,12 +4,14 @@
  * Network-first untuk API calls
  */
 
-const CACHE_NAME = 'stock-opname-v2';
+const CACHE_NAME = 'stock-opname-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
 ];
 
 // Install event - cache static assets
