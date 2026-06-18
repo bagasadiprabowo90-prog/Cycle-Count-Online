@@ -103,7 +103,7 @@ export default function App() {
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-base text-white tracking-tight">Stock Opname</h1>
+              <h1 className="font-bold text-base text-white tracking-tight">Stock Opname Bob & Frou</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 {
-  "name": "Stock Opname Pro",
-  "short_name": "Opname Pro",
+  "name": "Stock Opname Bob & Frou",
+  "short_name": "Bob & Frou",
   "description": "Aplikasi stock opname, cycle count, product in, dan scan barcode.",
   "start_url": "/",
   "scope": "/",
