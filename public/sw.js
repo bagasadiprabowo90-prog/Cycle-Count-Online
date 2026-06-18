@@ -4,7 +4,7 @@
  * Network-first untuk API calls
  */
 
-const CACHE_NAME = 'stock-opname-v5';
+const CACHE_NAME = 'stock-opname-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

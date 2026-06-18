@@ -20,7 +20,7 @@ function Chip({ label, selected, onClick }: ChipProps) {
       onClick={onClick}
       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
         selected
-          ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-md'
+          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
       }`}
     >
@@ -168,7 +168,7 @@ export default function ProductIn() {
               onClick={openDatePicker}
               className={`flex items-center gap-1.5 border text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm cursor-pointer transition-all ${
                 isToday(dateIN)
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                   : 'bg-white border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -192,7 +192,7 @@ export default function ProductIn() {
             <button
               type="button"
               onClick={resetDateIN}
-              className="flex items-center gap-1 bg-indigo-500 hover:bg-indigo-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
+              className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all"
               title="Kembali ke hari ini"
             >
               <CalendarDays className="w-3.5 h-3.5" />
@@ -210,7 +210,7 @@ export default function ProductIn() {
               <div className="relative flex-1">
                 <input
                   ref={searchRef}
-                  className="w-full pl-3 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                  className="w-full pl-3 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all"
                   placeholder="Ketik SKU atau Nama..."
                   value={search}
                   onChange={(e) => {
@@ -231,7 +231,7 @@ export default function ProductIn() {
               <button
                 type="button"
                 onClick={() => setIsScannerOpen(true)}
-                className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white px-3 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex items-center justify-center"
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md flex items-center justify-center"
               >
                 <Camera className="w-5 h-5" />
               </button>
@@ -242,7 +242,7 @@ export default function ProductIn() {
                 {filteredProducts.map((p, idx) => (
                   <div
                     key={`${p.barcode}-${p.batch}-${idx}`}
-                    className="px-4 py-3 border-b border-slate-100 cursor-pointer hover:bg-indigo-50 transition-colors"
+                    className="px-4 py-3 border-b border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors"
                     onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
                   >
                     <div className="font-medium text-slate-900 text-sm">{p.product}</div>
@@ -277,7 +277,7 @@ export default function ProductIn() {
               <label className="block text-xs font-medium text-slate-500 mb-1.5">Batch</label>
               <input
                 ref={batchInputRef}
-                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all font-medium"
+                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all font-medium"
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
                 placeholder="Ketik batch"
@@ -307,7 +307,7 @@ export default function ProductIn() {
             </label>
             <input
               ref={qtyInputRef}
-              className="w-full px-4 py-3.5 border-2 border-dashed border-indigo-300 rounded-2xl text-center text-2xl font-bold text-indigo-600 bg-gradient-to-br from-indigo-50/50 to-white focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+              className="w-full px-4 py-3.5 border-2 border-dashed border-emerald-300 rounded-2xl text-center text-2xl font-bold text-emerald-600 bg-gradient-to-br from-emerald-50/50 to-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
               placeholder="0"
               value={qtyRaw}
               onChange={(e) => setQtyRaw(e.target.value)}
@@ -327,7 +327,7 @@ export default function ProductIn() {
           <div className={`${isKeyboardVisible ? 'fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 shadow-lg' : ''}`}>
             <button
               type="submit"
-              className={`w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-indigo-600 hover:to-blue-600 transition-all shadow-md flex justify-center items-center gap-2 ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
+              className={`w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold py-3.5 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md flex justify-center items-center gap-2 ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
             >
               <Save className="w-4 h-4" />
               Simpan Product In

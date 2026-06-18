@@ -38,8 +38,8 @@ export default function History() {
   const countIn = transactions.filter(t => t.type === 'IN').length;
   const countCC = transactions.filter(t => t.type === 'CC').length;
 
-  const tabBgClass = tab === 'IN' ? 'bg-gradient-to-r from-indigo-500 to-blue-500' : 'bg-gradient-to-r from-emerald-500 to-teal-500';
-  const accentText = tab === 'IN' ? 'text-indigo-600' : 'text-emerald-600';
+  const tabBgClass = tab === 'IN' ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500';
+  const accentText = tab === 'IN' ? 'text-emerald-600' : 'text-emerald-600';
 
   const switchTab = (next: 'IN' | 'CC') => {
     setTab(next);
@@ -180,14 +180,14 @@ export default function History() {
           onClick={() => switchTab('IN')}
           className={`rounded-lg px-3 py-2 text-left transition-all ${
             tab === 'IN'
-              ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow ring-2 ring-indigo-200/60'
+              ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow ring-2 ring-emerald-200/60'
               : 'bg-white border border-slate-200'
           }`}
         >
-          <div className={`text-[9px] font-bold uppercase tracking-wider ${tab === 'IN' ? 'text-indigo-100' : 'text-slate-400'}`}>Product In</div>
+          <div className={`text-[9px] font-bold uppercase tracking-wider ${tab === 'IN' ? 'text-emerald-100' : 'text-slate-400'}`}>Product In</div>
           <div className="flex items-baseline gap-1 mt-0.5">
             <span className={`text-base font-black leading-none ${tab === 'IN' ? '' : 'text-slate-800'}`}>{totalIn.toLocaleString()}</span>
-            <span className={`text-[9px] ${tab === 'IN' ? 'text-indigo-200' : 'text-slate-400'}`}>{countIn}x</span>
+            <span className={`text-[9px] ${tab === 'IN' ? 'text-emerald-200' : 'text-slate-400'}`}>{countIn}x</span>
           </div>
         </button>
       </div>
@@ -198,7 +198,7 @@ export default function History() {
         <input
           type="text"
           placeholder="Cari produk, SKU, batch..."
-          className="w-full bg-white border border-slate-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500/20 outline-none rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-slate-800 transition-all"
+          className="w-full bg-white border border-slate-200 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/20 outline-none rounded-lg pl-7 pr-3 py-1.5 text-[11px] text-slate-800 transition-all"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -248,7 +248,7 @@ export default function History() {
                 <div
                   key={t.id}
                   ref={editRef}
-                  className="bg-indigo-50/80 px-3 py-2.5"
+                  className="bg-emerald-50/80 px-3 py-2.5"
                 >
                   <div className="text-[11px] font-semibold text-slate-800 truncate mb-1.5">
                     <span className="text-slate-400 font-medium">{t.sku}</span> {shortName(t.product)}
@@ -258,7 +258,7 @@ export default function History() {
                       <div className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Batch</div>
                       {t.type === 'CC' && batchOptions.length > 0 ? (
                         <select
-                          className="w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-medium bg-white focus:outline-none focus:border-indigo-400"
+                          className="w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-medium bg-white focus:outline-none focus:border-emerald-400"
                           value={editBatch}
                           onChange={(e) => setEditBatch(e.target.value)}
                         >
@@ -268,7 +268,7 @@ export default function History() {
                         </select>
                       ) : (
                         <input
-                          className="w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-medium bg-white focus:outline-none focus:border-indigo-400"
+                          className="w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-medium bg-white focus:outline-none focus:border-emerald-400"
                           value={editBatch}
                           onChange={(e) => setEditBatch(e.target.value)}
                         />
@@ -277,7 +277,7 @@ export default function History() {
                     <div className="w-16 shrink-0">
                       <div className="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Qty</div>
                       <input
-                        className={`w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-bold text-right bg-white focus:outline-none focus:border-indigo-400 ${accentText}`}
+                        className={`w-full px-1.5 py-1 border border-slate-300 rounded text-[11px] font-bold text-right bg-white focus:outline-none focus:border-emerald-400 ${accentText}`}
                         value={editQtyRaw}
                         onChange={(e) => setEditQtyRaw(e.target.value)}
                         inputMode="numeric"
@@ -323,7 +323,7 @@ export default function History() {
                 {/* Actions */}
                 <button
                   onClick={() => startEdit(t)}
-                  className="p-1 text-slate-300 hover:text-indigo-500 rounded transition-colors"
+                  className="p-1 text-slate-300 hover:text-emerald-500 rounded transition-colors"
                 >
                   <Edit3 className="w-3 h-3" />
                 </button>

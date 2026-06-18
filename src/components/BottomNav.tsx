@@ -9,7 +9,7 @@ interface BottomNavProps {
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   const navs = [
     { id: 'CC', label: 'Cycle Count', icon: ClipboardList, gradient: 'from-emerald-500 to-teal-500', activeBg: 'bg-gradient-to-br from-emerald-500 to-teal-500' },
-    { id: 'IN', label: 'Product In', icon: PackagePlus, gradient: 'from-indigo-500 to-blue-500', activeBg: 'bg-gradient-to-br from-indigo-500 to-blue-500' },
+    { id: 'IN', label: 'Product In', icon: PackagePlus, gradient: 'from-emerald-600 to-teal-600', activeBg: 'bg-gradient-to-br from-emerald-600 to-teal-600' },
     { id: 'HISTORY', label: 'History', icon: Clock, gradient: 'from-teal-500 to-cyan-500', activeBg: 'bg-gradient-to-br from-teal-500 to-cyan-500' },
   ] as const;
 

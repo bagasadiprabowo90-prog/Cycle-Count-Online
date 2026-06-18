@@ -96,10 +96,10 @@ export default function App() {
     <div className="pb-28 pb-safe">
       <ToastHost />
       {/* Header */}
-      <header className="bg-gradient-to-br from-slate-900 via-indigo-900 to-teal-900 text-white p-4 sticky top-0 z-20 shadow-xl">
+      <header className="bg-gradient-to-br from-slate-950 via-emerald-950 to-teal-950 text-white p-4 sticky top-0 z-20 shadow-xl">
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-indigo-500 to-teal-500 p-2.5 rounded-xl shadow-lg">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-2.5 rounded-xl shadow-lg">
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
