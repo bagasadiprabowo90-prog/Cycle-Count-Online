@@ -115,12 +115,13 @@ export default function ProductIn() {
   const handleSave = (e: FormEvent) => {
     e.preventDefault();
     const finalQty = calculateQty(qtyRaw);
-    if (!sku || !batch || finalQty <= 0) {
-      notify('error', 'Pilih produk, isi batch, dan pastikan Qty valid.');
+    if (!sku || finalQty <= 0) {
+      notify('error', 'Pilih produk dan pastikan Qty valid.');
       return;
     }
 
-    const realBarcode = products.find(p => p.sku === sku && p.batch === batch)?.barcode || `NEW-${sku}-${batch}`;
+    const finalBatch = batch || '';
+    const realBarcode = products.find(p => p.sku === sku && p.batch === finalBatch)?.barcode || `NEW-${sku}-${finalBatch || 'NOBATCH'}`;
 
     // Optimistic background save
     addTransaction({
@@ -129,7 +130,7 @@ export default function ProductIn() {
       barcode: realBarcode,
       sku,
       product: productName,
-      batch,
+      batch: finalBatch,
       qty: finalQty,
       user: user!
     }).then((result) => {
@@ -280,7 +281,7 @@ export default function ProductIn() {
                 className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400 transition-all font-medium"
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
-                placeholder="Ketik batch"
+                placeholder="Ketik batch (opsional)"
               />
             </div>
           </div>
