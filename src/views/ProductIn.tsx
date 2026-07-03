@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState, useEffect, type FormEvent, type Key } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect, useCallback, type FormEvent, type Key } from 'react';
 import { useStore } from '../store';
 import { Camera, Save, X, CalendarDays } from 'lucide-react';
 import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
@@ -46,7 +46,7 @@ export default function ProductIn() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-  // Track keyboard height using visualViewport for accurate padding
+  // Track keyboard height using visualViewport for accurate dynamic padding
   useEffect(() => {
     const vp = window.visualViewport;
     if (!vp) return;
@@ -60,6 +60,14 @@ export default function ProductIn() {
       vp.removeEventListener('resize', handle);
       vp.removeEventListener('scroll', handle);
     };
+  }, []);
+
+  // Scroll any focused input to visible area above the keyboard
+  const scrollToField = useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
   }, []);
 
   const filteredProducts = search.length >= 2
@@ -194,7 +202,7 @@ export default function ProductIn() {
 
       <div
         className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
-        style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 72}px` : undefined }}
+        style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 24}px` : undefined }}
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div className="relative">
@@ -210,6 +218,7 @@ export default function ProductIn() {
                     setSearch(e.target.value);
                     setShowDropdown(true);
                   }}
+                  onFocus={() => scrollToField(searchRef.current)}
                 />
                 {search && (
                   <button
@@ -274,6 +283,7 @@ export default function ProductIn() {
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
                 placeholder="Ketik batch (opsional)"
+                onFocus={() => scrollToField(batchInputRef.current)}
               />
             </div>
           </div>
@@ -304,9 +314,7 @@ export default function ProductIn() {
               placeholder="0"
               value={qtyRaw}
               onChange={(e) => setQtyRaw(e.target.value)}
-              onFocus={() => {
-                setTimeout(() => qtyInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
-              }}
+              onFocus={() => scrollToField(qtyInputRef.current)}
               onBlur={() => setQtyRaw(calculateQty(qtyRaw).toString())}
             />
           </div>

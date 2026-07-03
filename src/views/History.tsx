@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useStore } from '../store';
-import { Trash2, List, Save, X, Edit3, Search, CalendarDays, Loader2 } from 'lucide-react';
+import { Trash2, List, Save, X, Edit3, Search, CalendarDays, Loader2, User } from 'lucide-react';
 import { toYMD, toMDY, calculateQty, formatDateShort, isToday } from '../lib/calc';
 import { Transaction } from '../types';
 
@@ -243,48 +243,63 @@ export default function History() {
 
       {/* Transaction list */}
       {filtered.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+        <div className="space-y-2">
           {filtered.map(t => {
             const batchOptions = getBatchOptions(t);
             const isEditing = editingId === t.id;
 
             return (
-              <div key={t.id}>
-                {/* Main row */}
-                <div className={`flex items-center px-3 py-3 gap-2 transition-colors ${isEditing ? 'bg-emerald-50/40' : 'hover:bg-slate-50/60'}`}>
+              <div
+                key={t.id}
+                className={`bg-white rounded-xl border overflow-hidden transition-all ${
+                  isEditing
+                    ? 'border-emerald-300 shadow-md shadow-emerald-100/50'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {/* Main row – spacious padding for easy reading */}
+                <div className={`flex items-center px-3.5 py-3 gap-3 ${isEditing ? 'bg-emerald-50/30' : ''}`}>
                   {/* Product info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-slate-800 leading-snug truncate mb-1">
-                      {shortName(t.product)}
+                    <div className="flex items-start gap-2 mb-1.5">
+                      <span className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2">
+                        {shortName(t.product)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <span className="text-[10px] font-mono font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex text-[10px] font-mono font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
                         {t.sku}
                       </span>
                       {t.batch && (
-                        <span className="text-[10px] font-semibold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-100/80">
+                        <span className="inline-flex text-[10px] font-semibold bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded border border-amber-100/80">
                           {t.batch}
                         </span>
                       )}
                       <span className="text-[10px] text-slate-400">{formatDateShort(t.date)}</span>
+                      {t.user && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+                          <User className="w-2.5 h-2.5" />
+                          {t.user}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Qty */}
-                  <div className="shrink-0 min-w-[2.5rem] text-right">
-                    <span className="text-base font-black tabular-nums text-emerald-600">
+                  {/* Qty badge – large and prominent */}
+                  <div className="shrink-0">
+                    <span className="inline-flex items-center justify-center min-w-[2.75rem] px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-lg font-black tabular-nums text-emerald-600">
                       {t.qty}
                     </span>
                   </div>
 
-                  {/* Action buttons - larger touch targets */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  {/* Action buttons – rounded pill, large touch targets */}
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => startEdit(t)}
-                      className={`p-2 rounded-lg transition-all ${
+                      className={`p-2.5 rounded-full transition-all active:scale-95 ${
                         isEditing
-                          ? 'bg-emerald-500 text-white shadow-sm'
-                          : 'bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600'
+                          ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200'
+                          : 'bg-blue-50 text-blue-500 hover:bg-blue-100 active:bg-blue-200'
                       }`}
                       title="Edit"
                     >
@@ -292,7 +307,7 @@ export default function History() {
                     </button>
                     <button
                       onClick={() => setPendingDelete(t)}
-                      className="p-2 rounded-lg bg-slate-100 text-slate-500 hover:bg-red-100 hover:text-red-500 transition-all"
+                      className="p-2.5 rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-500 active:bg-red-200 transition-all active:scale-95"
                       title="Hapus"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -300,10 +315,10 @@ export default function History() {
                   </div>
                 </div>
 
-                {/* Edit panel - accordion below row */}
+                {/* Edit panel – slide-down accordion below the row */}
                 {isEditing && (
-                  <div className="px-3 pb-3 bg-emerald-50/40 border-t border-emerald-100">
-                    <div className="bg-white rounded-xl border border-emerald-200 p-4 shadow-sm mt-2.5">
+                  <div className="px-3.5 pb-3.5 bg-gradient-to-b from-emerald-50/40 to-emerald-50/20 border-t border-emerald-100">
+                    <div className="bg-white rounded-xl border border-emerald-200/70 p-4 shadow-sm mt-3">
                       <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-3">
                         Edit Transaksi
                       </div>
@@ -348,18 +363,18 @@ export default function History() {
                           />
                         </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-2 pt-0.5">
+                        {/* Buttons – full-width stacked */}
+                        <div className="flex gap-2 pt-1">
                           <button
                             onClick={() => saveEdit(t)}
-                            className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold py-3 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                            className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold py-3.5 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98]"
                           >
                             <Save className="w-3.5 h-3.5" />
                             Simpan Perubahan
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
-                            className="px-4 py-3 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-200 transition-all"
+                            className="px-5 py-3.5 bg-slate-100 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-200 transition-all active:scale-[0.98]"
                           >
                             Batal
                           </button>
@@ -413,4 +428,3 @@ export default function History() {
     </div>
   );
 }
-

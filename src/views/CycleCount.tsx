@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState, useEffect, type FormEvent, type Key } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect, useCallback, type FormEvent, type Key } from 'react';
 import { useStore } from '../store';
 import { Camera, CheckSquare, X, CalendarDays } from 'lucide-react';
 import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
@@ -48,7 +48,7 @@ export default function CycleCount() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-  // Track keyboard height using visualViewport for accurate padding
+  // Track keyboard height using visualViewport for accurate dynamic padding
   useEffect(() => {
     const vp = window.visualViewport;
     if (!vp) return;
@@ -62,6 +62,14 @@ export default function CycleCount() {
       vp.removeEventListener('resize', handle);
       vp.removeEventListener('scroll', handle);
     };
+  }, []);
+
+  // Scroll any focused input to visible area above the keyboard
+  const scrollToField = useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
   }, []);
 
   const filteredProducts = search.length >= 2
@@ -206,7 +214,7 @@ export default function CycleCount() {
 
       <div
         className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
-        style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 72}px` : undefined }}
+        style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 24}px` : undefined }}
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div className="relative">
@@ -222,6 +230,7 @@ export default function CycleCount() {
                     setSearch(e.target.value);
                     setShowDropdown(true);
                   }}
+                  onFocus={() => scrollToField(searchRef.current)}
                 />
                 {search && (
                   <button
@@ -286,6 +295,7 @@ export default function CycleCount() {
                 value={batch}
                 onChange={(e) => setBatch(e.target.value)}
                 placeholder="Ketik batch (opsional)"
+                onFocus={() => scrollToField(batchInputRef.current)}
               />
             </div>
           </div>
@@ -320,7 +330,7 @@ export default function CycleCount() {
               onFocus={(e) => {
                 if (qtyRaw === '0') setQtyRaw('');
                 else e.currentTarget.select();
-                setTimeout(() => qtyInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+                scrollToField(qtyInputRef.current);
               }}
               onBlur={normalizeQtyInput}
             />
