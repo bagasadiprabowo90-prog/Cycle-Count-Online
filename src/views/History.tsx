@@ -57,8 +57,8 @@ export default function History() {
 
   const getBatchOptions = (t: Transaction) => {
     const batchOptions = products
-      .filter(p => p.sku === t.sku && p.batch)
-      .map(p => p.batch);
+      .filter(p => p.sku === t.sku)
+      .map(p => p.batch || '');
     const uniqueBatches = Array.from(new Set(batchOptions));
     if (t.batch && !uniqueBatches.includes(t.batch)) {
       return [t.batch, ...uniqueBatches];
@@ -75,11 +75,12 @@ export default function History() {
 
   const saveEdit = (t: Transaction) => {
     const finalQty = calculateQty(editQtyRaw);
-    if (finalQty <= 0 || !editBatch) {
-      notify('error', 'Batch dan Qty harus diisi dengan benar.');
+    if (finalQty <= 0) {
+      notify('error', 'Qty harus diisi dengan benar.');
       return;
     }
-    const selectedProduct = products.find(p => p.sku === t.sku && p.batch === editBatch);
+    const finalEditBatch = editBatch || '';
+    const selectedProduct = products.find(p => p.sku === t.sku && p.batch === finalEditBatch);
     
     // Close editing instantly
     setEditingId(null);
@@ -89,7 +90,7 @@ export default function History() {
       ...t,
       barcode: selectedProduct?.barcode || t.barcode,
       product: selectedProduct?.product || t.product,
-      batch: editBatch,
+      batch: finalEditBatch,
       qty: finalQty
     }).then((result) => {
       if (!result.success) {
@@ -263,7 +264,7 @@ export default function History() {
                           onChange={(e) => setEditBatch(e.target.value)}
                         >
                           {batchOptions.map(batch => (
-                            <option key={batch} value={batch}>{batch}</option>
+                            <option key={batch} value={batch}>{batch || '(Tanpa Batch)'}</option>
                           ))}
                         </select>
                       ) : (
@@ -312,8 +313,12 @@ export default function History() {
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="text-[9px] font-semibold text-slate-400">{t.sku}</span>
-                    <span className="text-[9px] text-slate-300">·</span>
-                    <span className="px-1 py-px bg-amber-50 text-amber-600 rounded text-[9px] font-semibold leading-none">{t.batch}</span>
+                    {t.batch && (
+                      <>
+                        <span className="text-[9px] text-slate-300">·</span>
+                        <span className="px-1 py-px bg-amber-50 text-amber-600 rounded text-[9px] font-semibold leading-none">{t.batch}</span>
+                      </>
+                    )}
                     <span className="text-[9px] text-slate-300">·</span>
                     <span className="text-[9px] text-slate-500 font-medium">{formatDateShort(t.date)}</span>
                   </div>
@@ -345,7 +350,7 @@ export default function History() {
           <div className="w-full max-w-xs rounded-2xl bg-white p-4 shadow-2xl border border-slate-200">
             <h3 className="text-sm font-bold text-slate-900">Hapus transaksi?</h3>
             <p className="mt-1.5 text-xs text-slate-600">
-              <span className="font-bold">{pendingDelete.product}</span> batch <span className="font-bold">{pendingDelete.batch}</span> akan dihapus.
+              <span className="font-bold">{pendingDelete.product}</span>{pendingDelete.batch ? <> batch <span className="font-bold">{pendingDelete.batch}</span></> : ''} akan dihapus.
             </p>
             <div className="mt-3 flex justify-end gap-2">
               <button

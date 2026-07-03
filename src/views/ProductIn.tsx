@@ -247,7 +247,7 @@ export default function ProductIn() {
                     onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
                   >
                     <div className="font-medium text-slate-900 text-sm">{p.product}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">SKU: {p.sku} · Batch: {p.batch}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">SKU: {p.sku}{p.batch ? ` · Batch: ${p.batch}` : ''}</div>
                   </div>
                 ))}
               </div>
