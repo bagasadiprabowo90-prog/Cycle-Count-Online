@@ -38,7 +38,7 @@ export default function CycleCount() {
   const searchRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const [sku, setSku] = useState('');
   const [productName, setProductName] = useState('');
@@ -48,31 +48,19 @@ export default function CycleCount() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-  // Handle keyboard visibility on mobile
+  // Track keyboard height using visualViewport for accurate padding
   useEffect(() => {
-    const handleViewportChange = () => {
-      const viewportHeight = window.visualViewport?.height || window.innerHeight;
-      const documentHeight = document.documentElement.clientHeight;
-      const keyboardVisible = viewportHeight < documentHeight - 100;
-      setIsKeyboardVisible(keyboardVisible);
-
-      // Scroll input into view when keyboard shows
-      if (keyboardVisible && qtyInputRef.current) {
-        setTimeout(() => {
-          qtyInputRef.current?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-        }, 100);
-      }
+    const vp = window.visualViewport;
+    if (!vp) return;
+    const handle = () => {
+      const kb = Math.max(0, window.innerHeight - vp.height - vp.offsetTop);
+      setKeyboardOffset(kb);
     };
-
-    window.visualViewport?.addEventListener('resize', handleViewportChange);
-    window.addEventListener('resize', handleViewportChange);
-
+    vp.addEventListener('resize', handle);
+    vp.addEventListener('scroll', handle);
     return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportChange);
-      window.removeEventListener('resize', handleViewportChange);
+      vp.removeEventListener('resize', handle);
+      vp.removeEventListener('scroll', handle);
     };
   }, []);
 
@@ -216,7 +204,10 @@ export default function CycleCount() {
         </div>
       </div>
 
-      <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm ${isKeyboardVisible ? 'pb-28' : ''}`}>
+      <div
+        className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm"
+        style={{ paddingBottom: keyboardOffset > 0 ? `${keyboardOffset + 72}px` : undefined }}
+      >
         <form onSubmit={handleSave} className="space-y-4">
           <div className="relative">
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Cari Product</label>
@@ -329,27 +320,19 @@ export default function CycleCount() {
               onFocus={(e) => {
                 if (qtyRaw === '0') setQtyRaw('');
                 else e.currentTarget.select();
-                // Scroll into view when focused
-                setTimeout(() => {
-                  qtyInputRef.current?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                  });
-                }, 100);
+                setTimeout(() => qtyInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
               }}
               onBlur={normalizeQtyInput}
             />
           </div>
 
-          <div className={`${isKeyboardVisible ? 'fixed bottom-20 left-4 right-4 max-w-md mx-auto z-40 shadow-lg' : ''}`}>
-            <button
-              type="submit"
-              className={`w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md flex justify-center items-center gap-2 ${isKeyboardVisible ? 'rounded-2xl' : ''}`}
-            >
-              <CheckSquare className="w-4 h-4" />
-              Simpan Cycle Count
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold py-3.5 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-md flex justify-center items-center gap-2"
+          >
+            <CheckSquare className="w-4 h-4" />
+            Simpan Cycle Count
+          </button>
         </form>
       </div>
     </div>
