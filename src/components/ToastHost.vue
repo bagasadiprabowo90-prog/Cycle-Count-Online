@@ -31,18 +31,18 @@ const getIcon = (type: 'success' | 'error' | 'info') => {
         :key="toast.id"
         class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl max-w-md w-full border backdrop-blur-xl text-xs sm:text-sm font-medium"
         :class="{
-          'bg-emerald-950/90 text-emerald-100 border-emerald-500/30 shadow-emerald-950/20': toast.type === 'success',
-          'bg-rose-950/90 text-rose-100 border-rose-500/30 shadow-rose-950/20': toast.type === 'error',
-          'bg-slate-900/90 text-slate-100 border-slate-700/50 shadow-slate-950/30': toast.type === 'info',
+          'bg-[#1E352E]/95 text-[#C8D5B9] border-[#8FC0A9]/50 shadow-[#1E352E]/30': toast.type === 'success',
+          'bg-rose-950/95 text-rose-100 border-rose-500/40 shadow-rose-950/30': toast.type === 'error',
+          'bg-[#27443B]/95 text-[#C8D5B9] border-[#8FC0A9]/40 shadow-[#1E352E]/30': toast.type === 'info',
         }"
       >
         <component
           :is="getIcon(toast.type)"
           class="w-5 h-5 shrink-0"
           :class="{
-            'text-emerald-400': toast.type === 'success',
+            'text-[#8FC0A9]': toast.type === 'success',
             'text-rose-400': toast.type === 'error',
-            'text-cyan-400': toast.type === 'info',
+            'text-[#C8D5B9]': toast.type === 'info',
           }"
         />
         <div class="flex-1 font-semibold leading-relaxed">{{ toast.message }}</div>
@@ -58,4 +58,3 @@ const getIcon = (type: 'success' | 'error' | 'info') => {
     </TransitionGroup>
   </div>
 </template>
-

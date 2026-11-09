@@ -5,16 +5,15 @@
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-400: #34d399;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
+  /* Palette based on #C8D5B9 and #8FC0A9 */
+  --color-sage-light: #C8D5B9;
+  --color-sage-light-soft: #e5ece0;
+  --color-sage-light-50: #f5f8f3;
+  --color-sage-medium: #8FC0A9;
+  --color-sage-medium-hover: #7eb39b;
+  --color-sage-dark: #223f36;
+  --color-sage-darker: #172d26;
+  --color-sage-deep: #0f1f1a;
 }
 
 :root {
@@ -22,8 +21,8 @@
 }
 
 body {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: #f4f7f4;
+  color: #172d26;
   font-family: var(--font-sans);
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
@@ -31,30 +30,23 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
-/* Glassmorphism 2026 styles */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-}
-
-.glass-dark {
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
+/* Card & Section Containers */
 .neo-card {
   background: #ffffff;
   border-radius: 1.25rem;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(143, 192, 169, 0.3);
+  box-shadow: 0 4px 18px -2px rgba(34, 63, 54, 0.05), 0 2px 6px -1px rgba(34, 63, 54, 0.03);
 }
 
 .neo-card:hover {
-  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.06), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 8px 24px -3px rgba(34, 63, 54, 0.08), 0 3px 8px -2px rgba(34, 63, 54, 0.04);
+}
+
+.neo-section {
+  background: #ffffff;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(143, 192, 169, 0.35);
+  box-shadow: 0 2px 10px -2px rgba(34, 63, 54, 0.04);
 }
 
 /* Safe areas */
@@ -99,9 +91,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c8d5b9;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #8fc0a9;
 }

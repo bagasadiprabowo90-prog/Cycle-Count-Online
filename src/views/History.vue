@@ -16,8 +16,8 @@ import {
   User,
   AlertTriangle,
   RefreshCw,
-  Hash,
   Boxes,
+  Barcode,
 } from 'lucide-vue-next';
 
 const store = useStore();
@@ -131,25 +131,18 @@ const confirmDelete = async () => {
     store.notify('error', 'Terjadi kesalahan saat menghapus.');
   }
 };
-
-const getBatchOptions = (skuCode: string, currentB: string) => {
-  const opts = store.products.filter((p) => p.sku === skuCode).map((p) => p.batch || '');
-  const unique = Array.from(new Set(opts));
-  if (currentB && !unique.includes(currentB)) unique.unshift(currentB);
-  return unique;
-};
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3 pb-4">
     <!-- Top Date Filter & Refresh Row -->
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex items-center justify-between gap-2 px-0.5">
       <div>
-        <h2 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-          <Clock class="w-4 h-4 text-cyan-600" />
+        <h2 class="text-sm font-extrabold text-[#172D26] tracking-tight flex items-center gap-1.5">
+          <Clock class="w-4 h-4 text-[#3D6E5C]" />
           <span>Riwayat Transaksi</span>
         </h2>
-        <p class="text-[11px] text-slate-500 font-medium">Log data tersimpan per tanggal</p>
+        <p class="text-[11px] text-[#5C796E] font-medium">Log data tersimpan per tanggal</p>
       </div>
 
       <div class="flex items-center gap-1.5">
@@ -157,14 +150,14 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
           <button
             type="button"
             @click="openDatePicker"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border transition-all shadow-sm"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow-xs cursor-pointer"
             :class="
               isToday(store.dateHistory)
-                ? 'bg-cyan-50 text-cyan-800 border-cyan-200'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                ? 'bg-[#C8D5B9]/40 text-[#1E352E] border-[#8FC0A9]/60'
+                : 'bg-white text-[#2D5347] border-[#C8D5B9] hover:bg-[#F4F7F4]'
             "
           >
-            <CalendarDays class="w-3.5 h-3.5 text-cyan-600" />
+            <CalendarDays class="w-3.5 h-3.5 text-[#3D6E5C]" />
             <span>{{ formatDateShort(store.dateHistory) }}</span>
           </button>
           <input
@@ -180,7 +173,7 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
           v-if="!isToday(store.dateHistory)"
           type="button"
           @click="store.resetDateHistory()"
-          class="px-2.5 py-1.5 rounded-2xl text-[11px] font-bold bg-cyan-600 text-white shadow-sm hover:bg-cyan-700 transition-colors"
+          class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-[#8FC0A9] text-[#172D26] shadow-xs hover:bg-[#7EB39B] transition-colors"
         >
           Hari Ini
         </button>
@@ -189,7 +182,7 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
           type="button"
           @click="store.fetchTransactions(true)"
           :disabled="store.isSyncing"
-          class="p-2 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:text-slate-900 shadow-sm transition-all"
+          class="p-2 bg-white border border-[#C8D5B9] rounded-xl text-[#3D6E5C] hover:text-[#172D26] shadow-xs transition-all"
           title="Segarkan Riwayat"
         >
           <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.isSyncing }" />
@@ -197,16 +190,16 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
       </div>
     </div>
 
-    <!-- 2026 Segmented Control (Tabs) -->
-    <div class="p-1 bg-slate-200/80 rounded-2xl flex gap-1">
+    <!-- Segmented Tab Switcher (#C8D5B9 / #8FC0A9 Theme) -->
+    <div class="p-1 bg-[#C8D5B9]/30 border border-[#C8D5B9]/60 rounded-2xl flex gap-1">
       <button
         type="button"
         @click="currentTab = 'CC'; editingId = null"
-        class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+        class="flex-1 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         :class="
           currentTab === 'CC'
-            ? 'bg-white text-emerald-800 shadow-sm'
-            : 'text-slate-600 hover:text-slate-900'
+            ? 'bg-white text-[#172D26] shadow-sm'
+            : 'text-[#4F685F] hover:text-[#172D26]'
         "
       >
         <Layers class="w-3.5 h-3.5" />
@@ -216,11 +209,11 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
       <button
         type="button"
         @click="currentTab = 'IN'; editingId = null"
-        class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+        class="flex-1 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         :class="
           currentTab === 'IN'
-            ? 'bg-white text-teal-800 shadow-sm'
-            : 'text-slate-600 hover:text-slate-900'
+            ? 'bg-white text-[#172D26] shadow-sm'
+            : 'text-[#4F685F] hover:text-[#172D26]'
         "
       >
         <Package class="w-3.5 h-3.5" />
@@ -228,110 +221,116 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
       </button>
     </div>
 
-    <!-- Summary KPI Cards -->
+    <!-- KPI Summary Cards (Mobile Responsive, No Text Cut-Off) -->
     <div class="grid grid-cols-3 gap-2">
-      <div class="neo-card p-3 text-center">
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Item</div>
-        <div class="text-base font-extrabold text-slate-900 mt-0.5 font-mono">{{ stats.count }}</div>
+      <div class="bg-white rounded-2xl p-2.5 sm:p-3 border border-[#8FC0A9]/40 shadow-xs text-center">
+        <div class="text-[10px] font-bold text-[#5C796E] uppercase tracking-wider">Item</div>
+        <div class="text-sm sm:text-base font-extrabold text-[#172D26] mt-0.5 font-mono">{{ stats.count }}</div>
       </div>
-      <div class="neo-card p-3 text-center">
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Qty</div>
-        <div class="text-base font-extrabold text-emerald-600 mt-0.5 font-mono">{{ stats.totalQty }}</div>
+      <div class="bg-white rounded-2xl p-2.5 sm:p-3 border border-[#8FC0A9]/40 shadow-xs text-center">
+        <div class="text-[10px] font-bold text-[#5C796E] uppercase tracking-wider">Total Qty</div>
+        <div class="text-sm sm:text-base font-extrabold text-[#235342] mt-0.5 font-mono">{{ stats.totalQty }}</div>
       </div>
-      <div class="neo-card p-3 text-center">
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SKU Unik</div>
-        <div class="text-base font-extrabold text-cyan-600 mt-0.5 font-mono">{{ stats.uniqueSkus }}</div>
+      <div class="bg-white rounded-2xl p-2.5 sm:p-3 border border-[#8FC0A9]/40 shadow-xs text-center">
+        <div class="text-[10px] font-bold text-[#5C796E] uppercase tracking-wider">SKU Unik</div>
+        <div class="text-sm sm:text-base font-extrabold text-[#3B6657] mt-0.5 font-mono">{{ stats.uniqueSkus }}</div>
       </div>
     </div>
 
-    <!-- Search Input -->
+    <!-- Search / Filter Input -->
     <div class="relative">
-      <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A958B]" />
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Filter nama, SKU, atau batch..."
-        class="w-full pl-9 pr-8 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all font-medium"
+        placeholder="Filter nama produk, SKU, atau batch..."
+        class="w-full pl-9 pr-8 py-2.5 bg-white border border-[#C8D5B9] rounded-xl text-xs text-[#172D26] focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all font-medium"
       />
       <button
         v-if="searchQuery"
         type="button"
         @click="searchQuery = ''"
-        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A958B] hover:text-[#172D26] p-1"
       >
         <X class="w-4 h-4" />
       </button>
     </div>
 
-    <!-- List Items -->
-    <div v-if="filteredTransactions.length === 0" class="neo-card p-8 text-center">
-      <Boxes class="w-10 h-10 text-slate-300 mx-auto mb-2" />
-      <div class="text-sm font-bold text-slate-700">Belum ada transaksi</div>
-      <p class="text-xs text-slate-400 mt-0.5">Tidak ada data untuk tanggal atau filter ini.</p>
+    <!-- Empty State -->
+    <div v-if="filteredTransactions.length === 0" class="bg-white rounded-2xl p-8 border border-[#C8D5B9] text-center shadow-xs">
+      <Boxes class="w-10 h-10 text-[#8FC0A9]/60 mx-auto mb-2" />
+      <div class="text-sm font-bold text-[#172D26]">Belum ada data transaksi</div>
+      <p class="text-xs text-[#5C796E] mt-0.5">Tidak ada data untuk tanggal atau filter yang dipilih.</p>
     </div>
 
+    <!-- List Items (Mobile First, Fully Expanded Text, Zero Truncation) -->
     <div v-else class="space-y-2.5">
       <div
         v-for="t in filteredTransactions"
         :key="t.id"
-        class="neo-card p-4 transition-all"
+        class="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#8FC0A9]/40 shadow-xs transition-all space-y-2.5"
         :class="{
-          'ring-2 ring-emerald-500/30 border-emerald-300': editingId === t.id,
+          'ring-2 ring-[#8FC0A9] border-[#8FC0A9]': editingId === t.id,
           'opacity-90': t.id.startsWith('optimistic_'),
         }"
       >
         <!-- Standard Row View -->
-        <div v-if="editingId !== t.id">
+        <div v-if="editingId !== t.id" class="space-y-2.5">
+          <!-- Top Row: Full Product Title + Qty Pill -->
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
-              <div class="text-xs font-bold text-slate-900 leading-snug line-clamp-1">
+              <!-- Full product name, wraps cleanly on mobile without line truncation -->
+              <div class="text-xs font-extrabold text-[#172D26] leading-relaxed break-words">
                 {{ t.product || 'Tanpa Nama Produk' }}
-              </div>
-
-              <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-800">
-                  {{ t.sku }}
-                </span>
-                <span v-if="t.batch" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/50">
-                  B: {{ t.batch }}
-                </span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-50 text-slate-500 flex items-center gap-1">
-                  <User class="w-2.5 h-2.5" />
-                  {{ t.user }}
-                </span>
               </div>
             </div>
 
-            <!-- Qty Badge -->
-            <div class="text-right shrink-0">
-              <div class="text-base font-extrabold font-mono text-slate-900">
-                {{ t.qty }} <span class="text-[11px] font-normal text-slate-500">pcs</span>
+            <!-- Prominent Qty Badge -->
+            <div class="shrink-0 bg-[#8FC0A9]/20 border border-[#8FC0A9]/60 px-2.5 py-1 rounded-xl text-right">
+              <div class="text-sm sm:text-base font-extrabold font-mono text-[#172D26] leading-none">
+                {{ t.qty }} <span class="text-[10px] font-normal text-[#4F685F]">pcs</span>
               </div>
-              <div v-if="t.id.startsWith('optimistic_')" class="text-[9px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5">
-                pending sync
+              <div v-if="t.id.startsWith('optimistic_')" class="text-[9px] font-semibold text-amber-700 bg-amber-100/70 px-1.5 py-0.5 rounded mt-1 text-center">
+                pending
               </div>
             </div>
           </div>
 
-          <!-- Bottom Action Buttons -->
-          <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-            <div class="text-[10px] font-mono text-slate-400">
-              {{ t.barcode || t.sku }}
+          <!-- Middle Row: Metadata Badges (SKU, Batch, Operator) -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-extrabold bg-[#C8D5B9]/40 text-[#172D26] border border-[#C8D5B9]">
+              {{ t.sku }}
+            </span>
+            <span v-if="t.batch" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#8FC0A9]/30 text-[#1E352E] border border-[#8FC0A9]/40">
+              Batch: {{ t.batch }}
+            </span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#FAFBF9] text-[#5C796E] border border-slate-200 flex items-center gap-1">
+              <User class="w-2.5 h-2.5 text-[#7A958B]" />
+              {{ t.user }}
+            </span>
+          </div>
+
+          <!-- Bottom Row: Barcode & Action Buttons -->
+          <div class="flex items-center justify-between pt-2 border-t border-[#C8D5B9]/30">
+            <div class="text-[10px] font-mono text-[#7A958B] truncate max-w-[55%] flex items-center gap-1">
+              <Barcode class="w-3 h-3 shrink-0" />
+              <span class="truncate">{{ t.barcode || t.sku }}</span>
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 @click="startEdit(t)"
-                class="p-1.5 rounded-xl text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                class="px-2.5 py-1.5 rounded-xl text-xs font-bold text-[#2D5347] bg-[#C8D5B9]/30 hover:bg-[#C8D5B9]/60 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Edit Transaksi"
               >
                 <Edit3 class="w-3.5 h-3.5" />
+                <span>Edit</span>
               </button>
               <button
                 type="button"
                 @click="pendingDelete = t"
-                class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                class="p-1.5 rounded-xl text-[#7A958B] hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title="Hapus Transaksi"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -342,28 +341,28 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
 
         <!-- Inline Edit Mode -->
         <div v-else class="space-y-3">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-            <span class="text-xs font-bold text-emerald-800">Edit Transaksi ({{ t.sku }})</span>
-            <button type="button" @click="cancelEdit" class="text-slate-400 hover:text-slate-600">
+          <div class="flex items-center justify-between pb-2 border-b border-[#C8D5B9]/40">
+            <span class="text-xs font-extrabold text-[#172D26]">Edit Transaksi ({{ t.sku }})</span>
+            <button type="button" @click="cancelEdit" class="text-[#7A958B] hover:text-[#172D26]">
               <X class="w-4 h-4" />
             </button>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Batch</label>
+              <label class="block text-[10px] font-bold text-[#4F685F] uppercase mb-1">Batch</label>
               <input
                 v-model="editBatch"
                 type="text"
-                class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-none focus:border-emerald-500"
+                class="w-full px-3 py-1.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-[#8FC0A9]"
               />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Qty (Rumus OK)</label>
+              <label class="block text-[10px] font-bold text-[#4F685F] uppercase mb-1">Qty (Rumus OK)</label>
               <input
                 v-model="editQtyRaw"
                 type="text"
-                class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
+                class="w-full px-3 py-1.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs font-mono font-extrabold focus:outline-none focus:border-[#8FC0A9]"
               />
             </div>
           </div>
@@ -372,14 +371,14 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
             <button
               type="button"
               @click="cancelEdit"
-              class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+              class="px-3 py-1.5 text-xs font-semibold text-[#4F685F] hover:bg-[#C8D5B9]/30 rounded-xl"
             >
               Batal
             </button>
             <button
               type="button"
               @click="saveEdit(t)"
-              class="px-4 py-1.5 text-xs font-bold bg-emerald-600 text-white rounded-xl shadow-sm hover:bg-emerald-700 flex items-center gap-1.5"
+              class="px-4 py-1.5 text-xs font-extrabold bg-[#8FC0A9] hover:bg-[#7EB39B] text-[#13251F] rounded-xl shadow-xs flex items-center gap-1.5"
             >
               <Save class="w-3.5 h-3.5" />
               <span>Simpan Perubahan</span>
@@ -392,17 +391,17 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
     <!-- Delete Confirmation Modal -->
     <div
       v-if="pendingDelete"
-      class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 bg-[#172D26]/75 backdrop-blur-sm flex items-center justify-center p-4"
     >
-      <div class="neo-card max-w-sm w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 border border-[#8FC0A9]/40 shadow-2xl">
         <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mx-auto">
           <AlertTriangle class="w-6 h-6" />
         </div>
 
         <div class="text-center">
-          <h3 class="text-sm font-extrabold text-slate-900">Hapus Transaksi?</h3>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            Data SKU <strong class="text-slate-800">{{ pendingDelete.sku }}</strong> ({{ pendingDelete.qty }} pcs) akan dihapus dari sistem dan Google Sheets.
+          <h3 class="text-sm font-extrabold text-[#172D26]">Hapus Transaksi?</h3>
+          <p class="text-xs text-[#5C796E] mt-1 leading-relaxed">
+            Data SKU <strong class="text-[#172D26]">{{ pendingDelete.sku }}</strong> ({{ pendingDelete.qty }} pcs) akan dihapus dari sistem dan Google Sheets.
           </p>
         </div>
 
@@ -410,14 +409,14 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
           <button
             type="button"
             @click="pendingDelete = null"
-            class="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            class="flex-1 py-2.5 rounded-xl border border-[#C8D5B9] text-xs font-bold text-[#4F685F] hover:bg-[#FAFBF9]"
           >
             Batal
           </button>
           <button
             type="button"
             @click="confirmDelete"
-            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-lg shadow-rose-600/20"
+            class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 shadow-md shadow-rose-600/20"
           >
             Hapus Sekarang
           </button>
@@ -426,4 +425,3 @@ const getBatchOptions = (skuCode: string, currentB: string) => {
     </div>
   </div>
 </template>
-

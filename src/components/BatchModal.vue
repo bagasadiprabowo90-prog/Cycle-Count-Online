@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Layers, X, Plus, Check, Tag } from 'lucide-vue-next';
+import { Layers, X, Plus, Check } from 'lucide-vue-next';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -33,34 +33,34 @@ const submitManual = () => {
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#172D26]/75 backdrop-blur-md animate-in fade-in duration-200"
   >
     <div
-      class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
+      class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-[#8FC0A9]/40 animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
     >
       <!-- Header -->
-      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+      <div class="px-5 py-4 border-b border-[#C8D5B9]/40 flex items-center justify-between bg-[#F4F7F4]">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+          <div class="w-8 h-8 rounded-xl bg-[#8FC0A9]/30 text-[#1E352E] flex items-center justify-center font-bold">
             <Layers class="w-4 h-4" />
           </div>
           <div>
-            <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Pilih Nomor Batch</h3>
-            <p class="text-[11px] font-mono font-semibold text-emerald-700">{{ sku }}</p>
+            <h3 class="text-sm font-extrabold text-[#172D26] tracking-tight">Pilih Nomor Batch</h3>
+            <p class="text-[11px] font-mono font-semibold text-[#3B6657]">{{ sku }}</p>
           </div>
         </div>
 
         <button
           type="button"
           @click="emit('close')"
-          class="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+          class="p-1.5 rounded-xl hover:bg-[#C8D5B9]/40 text-[#4F685F] hover:text-[#172D26] transition-colors"
         >
           <X class="w-4 h-4" />
         </button>
       </div>
 
-      <!-- Product Description Banner -->
-      <div class="px-5 py-3 bg-emerald-50/60 border-b border-emerald-100/60 text-xs text-slate-700 font-medium leading-snug line-clamp-2">
+      <!-- Product Description Banner (Full wrapping, mobile friendly) -->
+      <div class="px-5 py-3 bg-[#C8D5B9]/20 border-b border-[#C8D5B9]/40 text-xs text-[#1E352E] font-medium leading-relaxed break-words">
         {{ productName }}
       </div>
 
@@ -68,14 +68,14 @@ const submitManual = () => {
       <div class="p-5 overflow-y-auto space-y-4">
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Batch Master Tersedia (Tinggal Pilih)
+            <label class="text-[11px] font-bold text-[#4F685F] uppercase tracking-wider">
+              Batch Tersedia (Tinggal Pilih)
             </label>
-            <span class="text-[10px] text-slate-400 font-medium">{{ batches.length }} batch</span>
+            <span class="text-[10px] text-[#7A958B] font-medium">{{ batches.length }} batch</span>
           </div>
 
           <!-- Empty state if no master batch -->
-          <div v-if="batches.length === 0" class="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-500">
+          <div v-if="batches.length === 0" class="p-4 rounded-2xl bg-[#F4F7F4] border border-dashed border-[#C8D5B9] text-center text-xs text-[#4F685F]">
             Tidak ada batch tersimpan di master. Silakan masukkan batch baru di bawah.
           </div>
 
@@ -89,8 +89,8 @@ const submitManual = () => {
               class="group relative p-3 rounded-2xl border text-left transition-all duration-150 flex items-center justify-between cursor-pointer"
               :class="
                 selectedBatch === b
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/30'
-                  : 'bg-slate-50 hover:bg-emerald-50/70 border-slate-200 text-slate-800 hover:border-emerald-300'
+                  ? 'bg-[#8FC0A9] text-[#172D26] border-[#8FC0A9] font-bold shadow-md shadow-[#8FC0A9]/30'
+                  : 'bg-[#F4F7F4] hover:bg-[#C8D5B9]/40 border-[#C8D5B9]/70 text-[#172D26] hover:border-[#8FC0A9]'
               "
             >
               <div class="min-w-0 pr-1">
@@ -99,21 +99,21 @@ const submitManual = () => {
               </div>
               <div
                 class="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                :class="selectedBatch === b ? 'bg-white/20 text-white' : 'text-transparent group-hover:text-emerald-600'"
+                :class="selectedBatch === b ? 'bg-[#172D26] text-white' : 'text-transparent group-hover:text-[#2D5347]'"
               >
-                <Check class="w-3.5 h-3.5" />
+                <Check class="w-3.5 h-3.5 stroke-[3]" />
               </div>
             </button>
           </div>
         </div>
 
         <!-- Custom / Manual Batch Section -->
-        <div class="pt-2 border-t border-slate-100">
+        <div class="pt-2 border-t border-[#C8D5B9]/40">
           <div v-if="!isCustom">
             <button
               type="button"
               @click="isCustom = true"
-              class="w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 text-slate-600 hover:text-emerald-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+              class="w-full py-2.5 px-3 rounded-xl border border-dashed border-[#8FC0A9] hover:bg-[#C8D5B9]/20 text-[#2D5347] text-xs font-bold transition-all flex items-center justify-center gap-1.5"
             >
               <Plus class="w-3.5 h-3.5" />
               <span>Input Batch Baru / Lainnya</span>
@@ -121,7 +121,7 @@ const submitManual = () => {
           </div>
 
           <div v-else class="space-y-2">
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider">
               Ketik Batch Baru
             </label>
             <div class="flex gap-2">
@@ -130,13 +130,13 @@ const submitManual = () => {
                 type="text"
                 placeholder="Nomor batch fisik..."
                 @keyup.enter="submitManual"
-                class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500"
+                class="flex-1 px-3.5 py-2.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs font-mono font-bold text-[#172D26] focus:bg-white focus:outline-none focus:border-[#8FC0A9]"
               />
               <button
                 type="button"
                 @click="submitManual"
                 :disabled="!manualBatch.trim()"
-                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                class="px-4 py-2.5 bg-[#8FC0A9] hover:bg-[#7EB39B] disabled:opacity-50 text-[#172D26] rounded-xl text-xs font-extrabold transition-all shadow-sm"
               >
                 Pilih
               </button>
@@ -146,11 +146,11 @@ const submitManual = () => {
       </div>
 
       <!-- Footer Buttons -->
-      <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+      <div class="p-3 bg-[#F4F7F4] border-t border-[#C8D5B9]/40 flex items-center justify-between">
         <button
           type="button"
           @click="selectBatch('')"
-          class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors"
+          class="px-3 py-1.5 rounded-xl text-xs font-semibold text-[#4F685F] hover:text-[#172D26] hover:bg-[#C8D5B9]/30 transition-colors"
         >
           Lewati (Tanpa Batch)
         </button>
@@ -158,7 +158,7 @@ const submitManual = () => {
         <button
           type="button"
           @click="emit('close')"
-          class="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors"
+          class="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#C8D5B9]/60 hover:bg-[#C8D5B9] text-[#1E352E] transition-colors"
         >
           Tutup
         </button>
@@ -166,4 +166,3 @@ const submitManual = () => {
     </div>
   </div>
 </template>
-

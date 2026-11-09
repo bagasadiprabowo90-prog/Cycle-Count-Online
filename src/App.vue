@@ -67,57 +67,57 @@ const handleLogin = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-100/70 text-slate-900 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+  <div class="min-h-screen bg-[#F4F7F4] text-[#172D26] font-sans antialiased selection:bg-[#8FC0A9] selection:text-[#172D26]">
     <ToastHost />
 
-    <!-- 1. LOGIN SCREEN (Modern 2026 Minimalist Neo-Card) -->
+    <!-- 1. LOGIN SCREEN -->
     <div v-if="!store.user" class="min-h-screen flex items-center justify-center p-4">
-      <div class="neo-card w-full max-w-sm p-7 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden">
-        <!-- Ambient decorative corner glow -->
-        <div class="absolute -top-16 -right-16 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="w-full max-w-sm p-7 sm:p-8 space-y-6 bg-white rounded-3xl border border-[#8FC0A9]/40 shadow-xl shadow-[#223F36]/5 relative overflow-hidden">
+        <!-- Ambient decorative corner glow using #C8D5B9 and #8FC0A9 -->
+        <div class="absolute -top-16 -right-16 w-36 h-36 bg-[#C8D5B9]/40 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-[#8FC0A9]/30 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="text-center relative">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-600 text-white shadow-xl shadow-emerald-600/25 mb-3.5">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-[#8FC0A9] to-[#2D5347] text-white shadow-lg shadow-[#8FC0A9]/30 mb-3.5">
             <Package class="w-8 h-8" />
           </div>
-          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
+          <h1 class="text-xl font-extrabold tracking-tight text-[#172D26]">
             Stock Opname Pro
           </h1>
-          <p class="text-xs text-slate-500 font-medium mt-1">
+          <p class="text-xs text-[#4F685F] font-medium mt-1">
             Warehouse Management & Cycle Count
           </p>
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4 relative">
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+            <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider mb-1.5">
               Nama Operator
             </label>
             <div class="relative">
-              <User class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <User class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A958B]" />
               <input
                 v-model="usernameInput"
                 type="text"
                 placeholder="Masukkan nama Anda..."
                 required
-                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
+                class="w-full pl-10 pr-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-2xl text-xs sm:text-sm text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all font-medium"
               />
             </div>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+            <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider mb-1.5">
               Password Operator
             </label>
             <div class="relative">
-              <ShieldCheck class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <ShieldCheck class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A958B]" />
               <input
                 v-model="passwordInput"
                 type="password"
                 placeholder="Masukkan password operator..."
                 required
-                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
+                class="w-full pl-10 pr-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-2xl text-xs sm:text-sm text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all font-medium"
               />
             </div>
             <div v-if="loginError" class="mt-2 text-xs font-semibold text-rose-600">
@@ -127,14 +127,14 @@ const handleLogin = () => {
 
           <button
             type="submit"
-            class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+            class="w-full py-3.5 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
           >
             <span>Masuk ke Sistem</span>
             <ArrowRight class="w-4 h-4" />
           </button>
         </form>
 
-        <div class="pt-2 text-center text-[10px] text-slate-400 font-medium">
+        <div class="pt-2 text-center text-[10px] text-[#7A958B] font-medium">
           Sinkronisasi Otomatis Google Sheets & Offline Storage
         </div>
       </div>
@@ -142,22 +142,22 @@ const handleLogin = () => {
 
     <!-- 2. MAIN APP SHELL -->
     <div v-else class="pb-28 pb-safe">
-      <!-- Top 2026 Sticky Glass Header -->
-      <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 text-white shadow-xl shadow-slate-950/20">
+      <!-- Top Sticky Header with Theme Palette -->
+      <header class="sticky top-0 z-30 bg-[#1E352E]/95 backdrop-blur-xl border-b border-[#8FC0A9]/20 text-white shadow-xl shadow-[#1E352E]/15">
         <div class="max-w-md mx-auto px-4 py-3">
           <div class="flex items-center justify-between">
             <!-- Brand & App Identity -->
             <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                <Package class="w-5 h-5" />
+              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#C8D5B9] to-[#8FC0A9] flex items-center justify-center text-[#1E352E] shadow-md shadow-[#8FC0A9]/20">
+                <Package class="w-5 h-5 font-bold" />
               </div>
               <div>
                 <h1 class="text-sm font-extrabold tracking-tight text-white leading-tight">
                   Stock Opname Pro
                 </h1>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                  <span class="inline-block w-1.5 h-1.5 rounded-full" :class="store.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'"></span>
-                  <span class="text-[10px] font-semibold text-slate-400">{{ store.user }}</span>
+                  <span class="inline-block w-1.5 h-1.5 rounded-full" :class="store.isOnline ? 'bg-[#8FC0A9] animate-pulse' : 'bg-rose-400'"></span>
+                  <span class="text-[10px] font-semibold text-[#C8D5B9]">{{ store.user }}</span>
                 </div>
               </div>
             </div>
@@ -168,7 +168,7 @@ const handleLogin = () => {
                 type="button"
                 @click="store.syncCloud()"
                 :disabled="store.isSyncing"
-                class="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 transition-colors shadow-sm"
+                class="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white transition-colors shadow-sm"
                 title="Tarik data terbaru dari Google Sheets"
               >
                 <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.isSyncing }" />
@@ -177,7 +177,7 @@ const handleLogin = () => {
               <button
                 type="button"
                 @click="store.logout()"
-                class="p-2 rounded-xl bg-white/10 hover:bg-rose-500/20 text-slate-200 hover:text-rose-300 transition-colors"
+                class="p-2 rounded-xl bg-white/10 hover:bg-rose-500/20 text-white hover:text-rose-300 transition-colors"
                 title="Keluar"
               >
                 <LogOut class="w-4 h-4" />
@@ -186,14 +186,14 @@ const handleLogin = () => {
           </div>
 
           <!-- Status Bar Meta (Online/Offline, Pending Queue, Sheets indicator) -->
-          <div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-slate-800/80">
+          <div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-white/10">
             <!-- Online / Offline Badge -->
             <div
               class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors"
               :class="
                 store.isOnline
-                  ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                  ? 'bg-[#8FC0A9]/20 text-[#C8D5B9] border-[#8FC0A9]/40'
+                  : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
               "
             >
               <component :is="store.isOnline ? Wifi : WifiOff" class="w-2.5 h-2.5" />
@@ -203,15 +203,15 @@ const handleLogin = () => {
             <!-- Pending writes badge -->
             <div
               v-if="store.pendingCount > 0"
-              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30"
+              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-500/30"
             >
               <CloudOff class="w-2.5 h-2.5" />
               <span>{{ store.pendingCount }} pending</span>
             </div>
 
             <!-- Cloud Database Tag -->
-            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700/60 ml-auto">
-              <Database class="w-2.5 h-2.5 text-emerald-400" />
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-black/20 text-[#C8D5B9] border border-white/10 ml-auto">
+              <Database class="w-2.5 h-2.5 text-[#8FC0A9]" />
               <span>Sheets Sync</span>
             </div>
           </div>
@@ -232,8 +232,8 @@ const handleLogin = () => {
         </div>
       </div>
 
-      <!-- Main Application Views -->
-      <main class="max-w-md mx-auto px-4 pt-4">
+      <!-- Main Application Views (Mobile Focused Container) -->
+      <main class="max-w-md mx-auto px-3.5 pt-3.5">
         <Transition
           mode="out-in"
           enter-active-class="transition duration-150 ease-out"
@@ -254,4 +254,3 @@ const handleLogin = () => {
     </div>
   </div>
 </template>
-

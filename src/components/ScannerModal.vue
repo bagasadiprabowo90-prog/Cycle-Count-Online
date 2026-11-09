@@ -145,19 +145,19 @@ onBeforeUnmount(async () => {
       <!-- Modal Header -->
       <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/70">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div class="w-8 h-8 rounded-xl bg-[#8FC0A9]/20 border border-[#8FC0A9]/30 flex items-center justify-center text-[#8FC0A9]">
             <ScanLine class="w-4 h-4" />
           </div>
           <div>
             <h3 class="font-bold text-sm text-white tracking-tight">Scanner Barcode</h3>
-            <p class="text-[11px] text-slate-400">1D Barcode & QR Code</p>
+            <p class="text-[11px] text-[#C8D5B9]">1D Barcode & QR Code</p>
           </div>
         </div>
 
         <button
           type="button"
           @click="handleClose"
-          class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+          class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[#C8D5B9] hover:text-white transition-colors"
         >
           <X class="w-4 h-4" />
         </button>
@@ -169,15 +169,15 @@ onBeforeUnmount(async () => {
 
         <!-- HUD Laser Guide -->
         <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div class="relative w-[85%] h-[140px] rounded-2xl border-2 border-emerald-400/60 shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] overflow-hidden">
+          <div class="relative w-[85%] h-[140px] rounded-2xl border-2 border-[#8FC0A9] shadow-[0_0_0_9999px_rgba(15,23,42,0.65)] overflow-hidden">
             <!-- Corner Brackets -->
-            <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-emerald-400"></div>
-            <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-emerald-400"></div>
-            <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-emerald-400"></div>
-            <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-emerald-400"></div>
+            <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#C8D5B9]"></div>
+            <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#C8D5B9]"></div>
+            <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#C8D5B9]"></div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#C8D5B9]"></div>
 
             <!-- Laser Beam Line -->
-            <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-scan-laser"></div>
+            <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-[#8FC0A9] to-transparent shadow-[0_0_12px_#8FC0A9] animate-scan-laser"></div>
           </div>
         </div>
       </div>

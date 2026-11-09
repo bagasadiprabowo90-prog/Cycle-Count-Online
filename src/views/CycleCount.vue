@@ -13,6 +13,7 @@ import {
   Layers,
   Delete,
   Calculator,
+  Barcode,
 } from 'lucide-vue-next';
 import ScannerModal from '../components/ScannerModal.vue';
 import BatchModal from '../components/BatchModal.vue';
@@ -100,7 +101,7 @@ const handleScanResult = (code: string) => {
   } else {
     search.value = code;
     showDropdown.value = true;
-    store.notify('info', 'Barcode baru (tidak ada di master). Silakan pilih atau lengkapi data.');
+    store.notify('info', 'Barcode baru. Silakan pilih atau lengkapi data.');
   }
 };
 
@@ -129,7 +130,6 @@ const appendOperator = (op: '+' | '-' | '×') => {
     return;
   }
 
-  // If last char is already an operator, replace it
   if (/[+\-*x×]$/.test(current)) {
     qtyRaw.value = current.slice(0, -1) + symbol;
   } else {
@@ -160,7 +160,8 @@ const adjustQty = (amount: number) => {
 const handleSave = async () => {
   const finalQty = calculateQty(qtyRaw.value);
   if (!sku.value) {
-    store.notify('error', 'Silakan pilih produk terlebih dahulu.');
+    store.notify('error', 'Silakan cari & pilih produk terlebih dahulu.');
+    searchRef.value?.focus();
     return;
   }
   if (finalQty <= 0) {
@@ -187,7 +188,7 @@ const handleSave = async () => {
     });
 
     if (res.success) {
-      store.notify('success', `Cycle Count disimpan: ${sku.value} (${finalQty} pcs)`);
+      store.notify('success', `Cycle Count tersimpan: ${sku.value} (${finalQty} pcs)`);
     } else {
       store.notify('error', `Gagal sync: ${res.message}`);
     }
@@ -208,7 +209,7 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3 pb-4">
     <!-- Scanner Modal -->
     <ScannerModal
       v-if="isScannerOpen"
@@ -228,14 +229,14 @@ const handleSave = async () => {
       @select="handleBatchSelected"
     />
 
-    <!-- Header & Date Bar (Bento Pill) -->
-    <div class="flex items-center justify-between gap-2">
+    <!-- Header & Date Bar -->
+    <div class="flex items-center justify-between gap-2 px-0.5">
       <div>
-        <h2 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5">
-          <Layers class="w-4 h-4 text-emerald-600" />
+        <h2 class="text-sm font-extrabold text-[#172D26] tracking-tight flex items-center gap-1.5">
+          <Layers class="w-4 h-4 text-[#447764]" />
           <span>Cycle Count</span>
         </h2>
-        <p class="text-[11px] text-slate-500 font-medium">Validasi fisik stok opname</p>
+        <p class="text-[11px] text-[#5C796E] font-medium">Validasi fisik stok opname gudang</p>
       </div>
 
       <div class="flex items-center gap-1.5">
@@ -243,14 +244,14 @@ const handleSave = async () => {
           <button
             type="button"
             @click="openDatePicker"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-semibold border transition-all shadow-sm"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow-xs cursor-pointer"
             :class="
               isToday(store.dateCC)
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                ? 'bg-[#C8D5B9]/40 text-[#1E352E] border-[#8FC0A9]/60'
+                : 'bg-white text-[#2D5347] border-[#C8D5B9] hover:bg-[#F4F7F4]'
             "
           >
-            <CalendarDays class="w-3.5 h-3.5 text-emerald-600" />
+            <CalendarDays class="w-3.5 h-3.5 text-[#3D6E5C]" />
             <span>{{ formatDateShort(store.dateCC) }}</span>
           </button>
           <input
@@ -266,261 +267,256 @@ const handleSave = async () => {
           v-if="!isToday(store.dateCC)"
           type="button"
           @click="store.resetDateCC()"
-          class="px-2.5 py-1.5 rounded-2xl text-[11px] font-bold bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors"
+          class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-[#8FC0A9] text-[#172D26] shadow-xs hover:bg-[#7EB39B] transition-colors"
         >
           Hari Ini
         </button>
       </div>
     </div>
 
-    <!-- Main Card Container (2026 Tactile Bento Card) -->
-    <div class="neo-card p-5 space-y-4">
-      <!-- Search & Barcode Trigger Row -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-          Cari atau Scan Produk
-        </label>
-        <div class="flex gap-2">
-          <div class="relative flex-1">
-            <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              ref="searchRef"
-              v-model="search"
-              @focus="showDropdown = true"
-              type="text"
-              placeholder="Ketik SKU, Nama, atau Barcode..."
-              class="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
-            />
-            <button
-              v-if="search"
-              type="button"
-              @click="search = ''; showDropdown = false"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-            >
-              <X class="w-4 h-4" />
-            </button>
+    <!-- SECTION 1: SEARCH & SCAN BARCODE (Separated, Not Merged) -->
+    <div class="bg-white rounded-2xl p-4 border border-[#8FC0A9]/40 shadow-xs relative">
+      <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider mb-2">
+        1. Cari atau Scan Produk
+      </label>
 
-            <!-- Autocomplete Dropdown -->
-            <div
-              v-if="showDropdown && filteredProducts.length > 0"
-              class="absolute left-0 right-0 top-full mt-2 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl z-30 max-h-56 overflow-y-auto divide-y divide-slate-100"
-            >
-              <button
-                v-for="p in filteredProducts"
-                :key="p.sku + (p.batch || '')"
-                type="button"
-                @click="selectProduct(p)"
-                class="w-full px-4 py-2.5 text-left hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
-              >
-                <div>
-                  <div class="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                    {{ p.product }}
-                  </div>
-                  <div class="text-[11px] font-mono text-slate-500 flex items-center gap-2 mt-0.5">
-                    <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-semibold">{{ p.sku }}</span>
-                    <span v-if="p.batch" class="text-emerald-600 font-medium">Batch: {{ p.batch }}</span>
-                  </div>
-                </div>
-                <div class="text-[11px] font-mono text-slate-400">
-                  {{ p.barcode }}
-                </div>
-              </button>
-            </div>
-          </div>
-
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A958B]" />
+          <input
+            ref="searchRef"
+            v-model="search"
+            @focus="showDropdown = true"
+            type="text"
+            placeholder="Ketik SKU, Nama, atau Barcode..."
+            class="w-full pl-9 pr-8 py-2.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs sm:text-sm text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all font-medium"
+          />
           <button
+            v-if="search"
             type="button"
-            @click="isScannerOpen = true"
-            class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
-            title="Scan Barcode Kamera"
-          >
-            <Camera class="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Selected Product Badge / Information -->
-      <div v-if="sku" class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/50 border border-emerald-200/80">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex items-start gap-2.5">
-            <div class="p-2 rounded-xl bg-emerald-600 text-white shadow-sm mt-0.5">
-              <Package class="w-4 h-4" />
-            </div>
-            <div>
-              <div class="text-xs font-bold text-slate-900 leading-snug">{{ productName }}</div>
-              <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white text-emerald-800 border border-emerald-200 shadow-xs">
-                  {{ sku }}
-                </span>
-                <!-- Clickable Batch Pill that triggers Modal -->
-                <button
-                  type="button"
-                  @click="isBatchModalOpen = true"
-                  class="px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
-                  :class="batch ? 'bg-emerald-600 text-white shadow-xs' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'"
-                >
-                  <Layers class="w-3 h-3" />
-                  <span>{{ batch ? 'Batch: ' + batch : '+ Pilih Batch' }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            @click="sku = ''; productName = ''; batch = '';"
-            class="text-slate-400 hover:text-slate-600 p-1"
-            title="Ganti Produk"
+            @click="search = ''; showDropdown = false"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A958B] hover:text-[#172D26] p-1"
           >
             <X class="w-4 h-4" />
           </button>
+
+          <!-- AUTOCOMPLETE DROPDOWN: Mobile Full-View (No Text Truncation) -->
+          <div
+            v-if="showDropdown && filteredProducts.length > 0"
+            class="absolute left-0 right-0 top-full mt-1.5 bg-white border-2 border-[#8FC0A9] rounded-2xl shadow-2xl z-40 max-h-72 overflow-y-auto divide-y divide-[#C8D5B9]/40"
+          >
+            <button
+              v-for="p in filteredProducts"
+              :key="p.sku + (p.batch || '')"
+              type="button"
+              @click="selectProduct(p)"
+              class="w-full p-3.5 text-left hover:bg-[#C8D5B9]/20 active:bg-[#C8D5B9]/40 transition-colors flex flex-col gap-1.5 cursor-pointer"
+            >
+              <!-- Full product name, completely visible on mobile without line clamp -->
+              <div class="text-xs font-extrabold text-[#172D26] leading-relaxed break-words">
+                {{ p.product }}
+              </div>
+
+              <!-- Badges Row: SKU, Batch, Barcode neatly wrapped -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span class="bg-[#C8D5B9]/50 text-[#172D26] px-2 py-0.5 rounded-md text-[10px] font-mono font-extrabold border border-[#C8D5B9]">
+                  {{ p.sku }}
+                </span>
+                <span v-if="p.batch" class="bg-[#8FC0A9]/30 text-[#1E352E] px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border border-[#8FC0A9]/50">
+                  Batch: {{ p.batch }}
+                </span>
+                <span v-if="p.barcode" class="bg-[#FAFBF9] text-[#5C796E] px-2 py-0.5 rounded-md text-[10px] font-mono font-medium border border-slate-200 flex items-center gap-1">
+                  <Barcode class="w-3 h-3 text-[#7A958B]" />
+                  {{ p.barcode }}
+                </span>
+              </div>
+            </button>
+          </div>
         </div>
+
+        <button
+          type="button"
+          @click="isScannerOpen = true"
+          class="px-4 py-2.5 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold rounded-xl shadow-md shadow-[#8FC0A9]/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
+          title="Scan Barcode Kamera"
+        >
+          <Camera class="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+
+    <!-- SECTION 2: SELECTED PRODUCT & BATCH BADGE (Distinct Card) -->
+    <div v-if="sku" class="bg-white rounded-2xl p-4 border-2 border-[#8FC0A9] shadow-xs space-y-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-start gap-2.5 min-w-0">
+          <div class="p-2 rounded-xl bg-[#8FC0A9] text-[#13251F] shrink-0 mt-0.5 shadow-xs font-bold">
+            <Package class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase font-bold text-[#4F685F] tracking-wider">Produk Terpilih</div>
+            <!-- Full Product Name: Mobile Friendly, Zero Truncation -->
+            <div class="text-xs font-extrabold text-[#172D26] leading-snug break-words mt-0.5">
+              {{ productName }}
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-extrabold bg-[#C8D5B9]/40 text-[#172D26] border border-[#C8D5B9]">
+                {{ sku }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="sku = ''; productName = ''; batch = '';"
+          class="text-[#7A958B] hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
+          title="Ganti Produk"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
 
-      <!-- Batch Selector Quick Bar (With Pop-up Trigger) -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Nomor Batch
+      <!-- Batch Selector Sub-Card -->
+      <div class="pt-3 border-t border-[#C8D5B9]/40">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-[11px] font-bold text-[#4F685F] uppercase tracking-wider flex items-center gap-1">
+            <Layers class="w-3.5 h-3.5 text-[#3D6E5C]" />
+            <span>Nomor Batch</span>
           </label>
           <button
-            v-if="sku"
             type="button"
             @click="isBatchModalOpen = true"
-            class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+            class="text-[11px] font-extrabold text-[#235342] hover:underline flex items-center gap-1 cursor-pointer bg-[#C8D5B9]/30 px-2 py-1 rounded-lg"
           >
-            <Layers class="w-3.5 h-3.5" />
-            <span>Buka Pop-up Batch</span>
+            <span>Pilih Pop-up</span>
           </button>
         </div>
 
-        <div class="space-y-2">
-          <!-- Horizontal Chips for existing batches -->
-          <div v-if="availableBatches.length > 0" class="flex flex-wrap gap-1.5">
-            <button
-              v-for="b in availableBatches"
-              :key="b"
-              type="button"
-              @click="batch = b"
-              class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-              :class="
-                batch === b
-                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              "
-            >
-              {{ b }}
-            </button>
-          </div>
+        <!-- Horizontal Batch Chips -->
+        <div v-if="availableBatches.length > 0" class="flex flex-wrap gap-1.5 mb-2">
+          <button
+            v-for="b in availableBatches"
+            :key="b"
+            type="button"
+            @click="batch = b"
+            class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer border"
+            :class="
+              batch === b
+                ? 'bg-[#8FC0A9] text-[#13251F] border-[#8FC0A9] shadow-xs'
+                : 'bg-[#FAFBF9] text-[#3D6E5C] border-[#C8D5B9] hover:bg-[#C8D5B9]/30'
+            "
+          >
+            {{ b }}
+          </button>
+        </div>
 
+        <input
+          v-model="batch"
+          type="text"
+          placeholder="Ketik batch manual atau pilih di atas..."
+          class="w-full px-3.5 py-2.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs font-mono font-bold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all"
+        />
+      </div>
+    </div>
+
+    <!-- SECTION 3: QUANTITY & MATH CALCULATOR (Distinct Card) -->
+    <div class="bg-white rounded-2xl p-4 border border-[#8FC0A9]/40 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider">
+          2. Jumlah Qty Fisik
+        </label>
+
+        <!-- Live Result Evaluator Badge -->
+        <div
+          v-if="hasFormula && calculatedQty !== null"
+          class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-[#8FC0A9]/30 text-[#172D26] border border-[#8FC0A9] flex items-center gap-1 animate-in fade-in"
+        >
+          <Calculator class="w-3.5 h-3.5 text-[#2D5347]" />
+          <span>= {{ calculatedQty }} pcs</span>
+        </div>
+        <span v-else class="text-[10px] text-[#7A958B] font-medium">Bisa rumus matematika</span>
+      </div>
+
+      <div class="space-y-2.5">
+        <div class="relative">
           <input
-            v-model="batch"
+            ref="qtyInputRef"
+            v-model="qtyRaw"
             type="text"
-            placeholder="Ketik batch manual atau klik pop-up..."
-            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono font-medium"
+            inputmode="decimal"
+            placeholder="0 (cth: 12*5)"
+            @keyup.enter="handleSave"
+            class="w-full px-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-lg font-mono font-extrabold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all text-center tracking-wider"
           />
         </div>
-      </div>
 
-      <!-- Quantity Stepper & Math Operator Toolbar (+, -, x) -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Jumlah Qty Fisik
-          </label>
-
-          <!-- Live Result Evaluator Badge -->
-          <div
-            v-if="hasFormula && calculatedQty !== null"
-            class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 flex items-center gap-1 animate-in fade-in"
+        <!-- Operator Keypad (+, -, x, ⌫, C) -->
+        <div class="grid grid-cols-5 gap-1.5">
+          <button
+            type="button"
+            @click="appendOperator('+')"
+            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            title="Tambah (+)"
           >
-            <Calculator class="w-3 h-3 text-emerald-600" />
-            <span>= {{ calculatedQty }} pcs</span>
-          </div>
-          <span v-else class="text-[11px] text-slate-400 font-medium">Mendukung rumus matematika</span>
+            +
+          </button>
+          <button
+            type="button"
+            @click="appendOperator('-')"
+            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            title="Kurang (-)"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            @click="appendOperator('×')"
+            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            title="Kali (×)"
+          >
+            ×
+          </button>
+          <button
+            type="button"
+            @click="backspaceQty"
+            class="py-2.5 rounded-xl text-xs font-bold bg-[#FAFBF9] hover:bg-slate-200 active:scale-95 text-[#3D6E5C] border border-[#C8D5B9]/70 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            title="Hapus 1 karakter"
+          >
+            <Delete class="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            @click="clearQty"
+            class="py-2.5 rounded-xl text-xs font-extrabold bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            title="Clear semua"
+          >
+            C
+          </button>
         </div>
 
-        <div class="space-y-2">
-          <div class="relative">
-            <input
-              ref="qtyInputRef"
-              v-model="qtyRaw"
-              type="text"
-              inputmode="decimal"
-              placeholder="0 (cth: 12*5)"
-              @keyup.enter="handleSave"
-              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-base sm:text-lg font-bold font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-center tracking-wider"
-            />
-          </div>
-
-          <!-- Operator Keypad (+, -, x, C, ⌫) -->
-          <div class="grid grid-cols-5 gap-1.5">
-            <button
-              type="button"
-              @click="appendOperator('+')"
-              class="py-2.5 rounded-xl text-base font-extrabold bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-200/60 transition-all flex items-center justify-center cursor-pointer shadow-xs"
-              title="Tambah (+)"
-            >
-              +
-            </button>
-            <button
-              type="button"
-              @click="appendOperator('-')"
-              class="py-2.5 rounded-xl text-base font-extrabold bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-200/60 transition-all flex items-center justify-center cursor-pointer shadow-xs"
-              title="Kurang (-)"
-            >
-              −
-            </button>
-            <button
-              type="button"
-              @click="appendOperator('×')"
-              class="py-2.5 rounded-xl text-base font-extrabold bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-800 border border-emerald-200/60 transition-all flex items-center justify-center cursor-pointer shadow-xs"
-              title="Kali (×)"
-            >
-              ×
-            </button>
-            <button
-              type="button"
-              @click="backspaceQty"
-              class="py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 transition-all flex items-center justify-center cursor-pointer"
-              title="Hapus 1 karakter"
-            >
-              <Delete class="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              @click="clearQty"
-              class="py-2.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-200/60 transition-all flex items-center justify-center cursor-pointer"
-              title="Clear semua"
-            >
-              C
-            </button>
-          </div>
-
-          <!-- Quick Increment Chips (+1, +5, +12, +24, +50) -->
-          <div class="grid grid-cols-5 gap-1.5">
-            <button
-              v-for="val in [1, 5, 10, 24, 50]"
-              :key="val"
-              type="button"
-              @click="adjustQty(val)"
-              class="py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 transition-all"
-            >
-              +{{ val }}
-            </button>
-          </div>
+        <!-- Quick Increment Chips (+1, +5, +10, +24, +50) -->
+        <div class="grid grid-cols-5 gap-1.5">
+          <button
+            v-for="val in [1, 5, 10, 24, 50]"
+            :key="val"
+            type="button"
+            @click="adjustQty(val)"
+            class="py-1.5 rounded-lg text-xs font-bold bg-[#FAFBF9] hover:bg-[#C8D5B9]/30 active:scale-95 text-[#2D5347] border border-[#C8D5B9]/60 transition-all"
+          >
+            +{{ val }}
+          </button>
         </div>
       </div>
-
-      <!-- Submit Action Button (2026 Tactile Full-width Pill) -->
-      <button
-        type="button"
-        @click="handleSave"
-        class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-emerald-600/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-      >
-        <CheckCircle class="w-4 h-4" />
-        <span>Simpan Cycle Count</span>
-      </button>
     </div>
+
+    <!-- SECTION 4: SAVE ACTION BUTTON (Prominent & Tactile) -->
+    <button
+      type="button"
+      @click="handleSave"
+      class="w-full py-3.5 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm rounded-2xl shadow-lg shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+    >
+      <CheckCircle class="w-4 h-4 font-bold" />
+      <span>Simpan Cycle Count</span>
+    </button>
   </div>
 </template>
