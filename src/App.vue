@@ -142,78 +142,49 @@ const handleLogin = () => {
 
     <!-- 2. MAIN APP SHELL -->
     <div v-else class="pb-36 pb-safe">
-      <!-- Top Sticky Header with Theme Palette -->
-      <header class="sticky top-0 z-30 bg-[#1E352E]/95 backdrop-blur-xl border-b border-[#8FC0A9]/20 text-white shadow-xl shadow-[#1E352E]/15">
-        <div class="max-w-md mx-auto px-4 py-3">
-          <div class="flex items-center justify-between">
-            <!-- Brand & App Identity -->
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#C8D5B9] to-[#8FC0A9] flex items-center justify-center text-[#1E352E] shadow-md shadow-[#8FC0A9]/20">
-                <Package class="w-5 h-5 font-bold" />
-              </div>
-              <div>
-                <h1 class="text-sm font-extrabold tracking-tight text-white leading-tight">
-                  Stock Opname Pro
-                </h1>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <span class="inline-block w-1.5 h-1.5 rounded-full" :class="store.isOnline ? 'bg-[#8FC0A9] animate-pulse' : 'bg-rose-400'"></span>
-                  <span class="text-[10px] font-semibold text-[#C8D5B9]">{{ store.user }}</span>
-                </div>
-              </div>
+      <!-- Compact Slim Header (Cycle Count Bob & Frou) -->
+      <header class="sticky top-0 z-30 bg-[#1E352E]/95 backdrop-blur-xl border-b border-[#8FC0A9]/20 text-white shadow-md">
+        <div class="max-w-md mx-auto px-3.5 py-2 flex items-center justify-between gap-2">
+          <!-- Brand & App Identity -->
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C8D5B9] to-[#8FC0A9] flex items-center justify-center text-[#1E352E] shadow-xs shrink-0 font-bold">
+              <Package class="w-4 h-4" />
             </div>
-
-            <!-- Header Quick Action Pills -->
-            <div class="flex items-center gap-1.5">
-              <button
-                type="button"
-                @click="store.syncCloud()"
-                :disabled="store.isSyncing"
-                class="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white transition-colors shadow-sm"
-                title="Tarik data terbaru dari Google Sheets"
-              >
-                <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.isSyncing }" />
-              </button>
-
-              <button
-                type="button"
-                @click="store.logout()"
-                class="p-2 rounded-xl bg-white/10 hover:bg-rose-500/20 text-white hover:text-rose-300 transition-colors"
-                title="Keluar"
-              >
-                <LogOut class="w-4 h-4" />
-              </button>
+            <div class="min-w-0">
+              <h1 class="text-xs sm:text-sm font-extrabold tracking-tight text-white leading-tight truncate">
+                Cycle Count Bob & Frou
+              </h1>
+              <div class="flex items-center gap-1.5 text-[10px] text-[#C8D5B9] leading-none mt-0.5">
+                <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0" :class="store.isOnline ? 'bg-[#8FC0A9] animate-pulse' : 'bg-rose-400'"></span>
+                <span class="truncate font-semibold">{{ store.user }}</span>
+                <span v-if="store.pendingCount > 0" class="text-amber-300 font-bold bg-amber-500/20 px-1 rounded text-[9px]">
+                  {{ store.pendingCount }} pending
+                </span>
+                <span class="text-[#8FC0A9]/60 font-medium">· Sheets Sync</span>
+              </div>
             </div>
           </div>
 
-          <!-- Status Bar Meta (Online/Offline, Pending Queue, Sheets indicator) -->
-          <div class="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-white/10">
-            <!-- Online / Offline Badge -->
-            <div
-              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors"
-              :class="
-                store.isOnline
-                  ? 'bg-[#8FC0A9]/20 text-[#C8D5B9] border-[#8FC0A9]/40'
-                  : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-              "
+          <!-- Header Quick Action Pills -->
+          <div class="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              @click="store.syncCloud()"
+              :disabled="store.isSyncing"
+              class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#C8D5B9] hover:text-white transition-colors"
+              title="Tarik data terbaru dari Google Sheets"
             >
-              <component :is="store.isOnline ? Wifi : WifiOff" class="w-2.5 h-2.5" />
-              <span>{{ store.isOnline ? 'Online' : 'Offline' }}</span>
-            </div>
+              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.isSyncing }" />
+            </button>
 
-            <!-- Pending writes badge -->
-            <div
-              v-if="store.pendingCount > 0"
-              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-500/30"
+            <button
+              type="button"
+              @click="store.logout()"
+              class="p-1.5 rounded-lg bg-white/10 hover:bg-rose-500/20 text-[#C8D5B9] hover:text-rose-300 transition-colors"
+              title="Keluar"
             >
-              <CloudOff class="w-2.5 h-2.5" />
-              <span>{{ store.pendingCount }} pending</span>
-            </div>
-
-            <!-- Cloud Database Tag -->
-            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-black/20 text-[#C8D5B9] border border-white/10 ml-auto">
-              <Database class="w-2.5 h-2.5 text-[#8FC0A9]" />
-              <span>Sheets Sync</span>
-            </div>
+              <LogOut class="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </header>

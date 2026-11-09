@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { useStore } from '../store';
 import { Product } from '../types';
 import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
@@ -24,6 +24,15 @@ const store = useStore();
 const searchRef = ref<HTMLInputElement | null>(null);
 const qtyInputRef = ref<HTMLInputElement | null>(null);
 const dateInputRef = ref<HTMLInputElement | null>(null);
+const saveButtonRef = ref<HTMLElement | null>(null);
+
+const scrollToSaveButton = () => {
+  nextTick(() => {
+    setTimeout(() => {
+      saveButtonRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 120);
+  });
+};
 
 const search = ref('');
 const sku = ref('');
@@ -63,6 +72,13 @@ const hasFormula = computed(() => {
   return /[+\-*x×÷/]/.test(qtyRaw.value);
 });
 
+// Auto-scroll to save button when Qty is modified
+watch(qtyRaw, (val) => {
+  if (val && val.trim().length > 0) {
+    scrollToSaveButton();
+  }
+});
+
 // Auto-open batch modal when product is selected
 const selectProduct = (p: Product, skipBatchModal = false) => {
   sku.value = p.sku;
@@ -90,6 +106,7 @@ const handleBatchSelected = (selectedB: string) => {
   isBatchModalOpen.value = false;
   nextTick(() => {
     qtyInputRef.value?.focus();
+    scrollToSaveButton();
   });
 };
 
@@ -137,6 +154,7 @@ const appendOperator = (op: '+' | '-' | '×') => {
     qtyRaw.value = current + symbol;
   }
   qtyInputRef.value?.focus();
+  scrollToSaveButton();
 };
 
 const clearQty = () => {
@@ -149,6 +167,7 @@ const backspaceQty = () => {
     qtyRaw.value = qtyRaw.value.slice(0, -1);
   }
   qtyInputRef.value?.focus();
+  scrollToSaveButton();
 };
 
 const adjustQty = (amount: number) => {
@@ -156,6 +175,7 @@ const adjustQty = (amount: number) => {
   const next = Math.max(0, current + amount);
   qtyRaw.value = next > 0 ? String(next) : '';
   qtyInputRef.value?.focus();
+  scrollToSaveButton();
 };
 
 const handleSave = async () => {
@@ -447,6 +467,8 @@ const handleSave = async () => {
             type="text"
             inputmode="decimal"
             placeholder="0 (cth: 24*5)"
+            @focus="scrollToSaveButton"
+            @input="scrollToSaveButton"
             @keyup.enter="handleSave"
             class="w-full px-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-lg font-mono font-extrabold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all text-center tracking-wider"
           />
@@ -512,7 +534,7 @@ const handleSave = async () => {
     </div>
 
     <!-- SECTION 4: SAVE ACTION BUTTON (Prominent, Tactile, Well Clear of Bottom Bar) -->
-    <div class="pt-2 pb-8">
+    <div ref="saveButtonRef" class="pt-2 pb-8">
       <button
         type="button"
         @click="handleSave"
