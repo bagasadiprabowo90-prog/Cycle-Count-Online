@@ -1,16 +1,15 @@
-import { create } from 'zustand';
+import { defineStore } from 'pinia';
 import { Product, Transaction } from './types';
-import { getCached, setCache, isOnline } from './lib/cache';
+import { getCached, setCache, isOnline as checkOnline } from './lib/cache';
 import {
   queueTransaction,
   startAutoSync,
-  stopAutoSync,
   getPendingCount,
   onSyncStatusChange,
   forceSyncNow,
 } from './lib/syncManager';
 
-interface MutationResult {
+export interface MutationResult {
   success: boolean;
   message: string;
   id?: string;
@@ -23,57 +22,6 @@ export interface ToastMessage {
   message: string;
 }
 
-interface AppState {
-  // User state
-  user: string | null;
-
-  // Data state
-  products: Product[];
-  transactions: Transaction[];
-
-  // Date state
-  dateIN: string;
-  dateCC: string;
-  dateHistory: string;
-
-  // Sync state
-  isSyncing: boolean;
-  isOnline: boolean;
-  pendingCount: number;
-  syncError: string | null;
-
-  // Toast state
-  toasts: ToastMessage[];
-
-  // Actions
-  clearSyncError: () => void;
-  notify: (type: ToastMessage['type'], message: string) => void;
-  dismissToast: (id: number) => void;
-  login: (username: string) => void;
-  logout: () => void;
-
-  // Data fetching
-  fetchProducts: (forceRefresh?: boolean) => Promise<void>;
-  fetchTransactions: (forceRefresh?: boolean) => Promise<void>;
-
-  // Sync
-  syncCloud: () => Promise<void>;
-  setDateIN: (date: string) => void;
-  setDateCC: (date: string) => void;
-  setDateHistory: (date: string) => void;
-  resetDateIN: () => void;
-  resetDateCC: () => void;
-  resetDateHistory: () => void;
-
-  // Transactions
-  addTransaction: (record: Omit<Transaction, 'id' | 'timestamp'>) => Promise<MutationResult>;
-  updateTransaction: (id: string, type: 'IN' | 'CC', record: Partial<Transaction>) => Promise<MutationResult>;
-  deleteTransaction: (id: string, type: 'IN' | 'CC') => Promise<MutationResult>;
-
-  // Init
-  initialize: () => void;
-}
-
 const getToday = () => {
   const d = new Date();
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
@@ -81,21 +29,22 @@ const getToday = () => {
 
 const getDateKey = (key: string, user: string | null) => (user ? `${key}_${user}` : key);
 const getSavedDate = (key: string, user: string | null) =>
-  localStorage.getItem(getDateKey(key, user)) || getToday();
+  (typeof window !== 'undefined' ? localStorage.getItem(getDateKey(key, user)) : null) || getToday();
 
 const saveDate = (key: string, date: string) => {
-  localStorage.setItem(key, date);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, date);
+  }
   return date;
 };
 
-const initialUser = localStorage.getItem('opname_user');
+const initialUser = typeof window !== 'undefined' ? localStorage.getItem('opname_user') : null;
 
-// Read mutation result from response
 const readMutationResult = async (res: Response): Promise<MutationResult> => {
   let json: any = {};
   try {
     json = await res.json();
-  } catch (err) {
+  } catch {
     return { success: false, message: 'Server mengirim respons yang tidak valid.' };
   }
 
@@ -113,343 +62,335 @@ const readMutationResult = async (res: Response): Promise<MutationResult> => {
   };
 };
 
-export const useStore = create<AppState>((set, get) => ({
-  user: initialUser,
-  products: [],
-  transactions: [],
-  dateIN: getSavedDate('opname_date_in', initialUser),
-  dateCC: getSavedDate('opname_date_cc', initialUser),
-  dateHistory: getSavedDate('opname_date_history', initialUser),
-  isSyncing: false,
-  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
-  pendingCount: 0,
-  syncError: null,
-  toasts: [],
+export const useStore = defineStore('app', {
+  state: () => ({
+    user: initialUser as string | null,
+    products: [] as Product[],
+    transactions: [] as Transaction[],
+    dateIN: getSavedDate('opname_date_in', initialUser),
+    dateCC: getSavedDate('opname_date_cc', initialUser),
+    dateHistory: getSavedDate('opname_date_history', initialUser),
+    isSyncing: false,
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+    pendingCount: 0,
+    syncError: null as string | null,
+    toasts: [] as ToastMessage[],
+    isInitialized: false,
+  }),
 
-  initialize: () => {
-    // Start auto sync
-    startAutoSync();
+  actions: {
+    initialize() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
 
-    // Listen for sync status
-    onSyncStatusChange((status) => {
-      set({
-        isSyncing: status.syncing,
-        pendingCount: status.pending,
+      // Start auto sync background
+      startAutoSync();
+
+      // Listen for sync status changes
+      onSyncStatusChange((status) => {
+        this.isSyncing = status.syncing;
+        this.pendingCount = status.pending;
       });
-    });
 
-    // Listen for online/offline
-    const handleOnline = () => set({ isOnline: true });
-    const handleOffline = () => set({ isOnline: false });
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
-    }
-
-    // Initial pending count
-    getPendingCount().then((count) => set({ pendingCount: count }));
-  },
-
-  login: (username: string) => {
-    localStorage.setItem('opname_user', username);
-    set({
-      user: username,
-      dateIN: getSavedDate('opname_date_in', username),
-      dateCC: getSavedDate('opname_date_cc', username),
-      dateHistory: getSavedDate('opname_date_history', username),
-    });
-  },
-
-  logout: () => {
-    localStorage.removeItem('opname_user');
-    set({ user: null, products: [], transactions: [] });
-  },
-
-  clearSyncError: () => set({ syncError: null }),
-
-  notify: (type, message) => {
-    const id = Date.now() + Math.floor(Math.random() * 1000);
-    set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
-    window.setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, 4500);
-  },
-
-  dismissToast: (id: number) => {
-    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-  },
-
-  setDateIN: (date: string) =>
-    set({ dateIN: saveDate(getDateKey('opname_date_in', get().user), date) }),
-
-  setDateCC: (date: string) =>
-    set({ dateCC: saveDate(getDateKey('opname_date_cc', get().user), date) }),
-
-  setDateHistory: (date: string) => {
-    set({ dateHistory: saveDate(getDateKey('opname_date_history', get().user), date) });
-    get().fetchTransactions();
-  },
-
-  resetDateIN: () => {
-    const today = getToday();
-    saveDate(getDateKey('opname_date_in', get().user), today);
-    set({ dateIN: today });
-  },
-
-  resetDateCC: () => {
-    const today = getToday();
-    saveDate(getDateKey('opname_date_cc', get().user), today);
-    set({ dateCC: today });
-  },
-
-  resetDateHistory: () => {
-    const today = getToday();
-    saveDate(getDateKey('opname_date_history', get().user), today);
-    set({ dateHistory: today });
-    get().fetchTransactions();
-  },
-
-  fetchProducts: async (forceRefresh = false) => {
-    // Try cache first if not forcing refresh
-    if (!forceRefresh) {
-      const cached = await getCached('products', 'master');
-      if (cached && cached.length > 0) {
-        set({ products: cached, syncError: null });
-        // Still fetch in background for freshness
+      // Listen for network connectivity changes
+      if (typeof window !== 'undefined') {
+        window.addEventListener('online', () => { this.isOnline = true; });
+        window.addEventListener('offline', () => { this.isOnline = false; });
       }
-    }
 
-    try {
-      const res = await fetch('/api/products');
-      const json = await res.json();
-      if (json.success) {
-        const products = json.data || [];
-        set({ products, syncError: null });
-        // Update cache
-        await setCache('products', 'master', products);
-      } else {
-        // If API fails but we have cache, use it
+      // Initial pending count
+      getPendingCount().then((count) => {
+        this.pendingCount = count;
+      });
+    },
+
+    login(username: string) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('opname_user', username);
+      }
+      this.user = username;
+      this.dateIN = getSavedDate('opname_date_in', username);
+      this.dateCC = getSavedDate('opname_date_cc', username);
+      this.dateHistory = getSavedDate('opname_date_history', username);
+    },
+
+    logout() {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('opname_user');
+      }
+      this.user = null;
+      this.products = [];
+      this.transactions = [];
+    },
+
+    clearSyncError() {
+      this.syncError = null;
+    },
+
+    notify(type: ToastMessage['type'], message: string) {
+      const id = Date.now() + Math.floor(Math.random() * 1000);
+      this.toasts.push({ id, type, message });
+      if (typeof window !== 'undefined') {
+        window.setTimeout(() => {
+          this.dismissToast(id);
+        }, 4000);
+      }
+    },
+
+    dismissToast(id: number) {
+      this.toasts = this.toasts.filter((t) => t.id !== id);
+    },
+
+    setDateIN(date: string) {
+      this.dateIN = saveDate(getDateKey('opname_date_in', this.user), date);
+    },
+
+    setDateCC(date: string) {
+      this.dateCC = saveDate(getDateKey('opname_date_cc', this.user), date);
+    },
+
+    setDateHistory(date: string) {
+      this.dateHistory = saveDate(getDateKey('opname_date_history', this.user), date);
+      this.fetchTransactions();
+    },
+
+    resetDateIN() {
+      const today = getToday();
+      saveDate(getDateKey('opname_date_in', this.user), today);
+      this.dateIN = today;
+    },
+
+    resetDateCC() {
+      const today = getToday();
+      saveDate(getDateKey('opname_date_cc', this.user), today);
+      this.dateCC = today;
+    },
+
+    resetDateHistory() {
+      const today = getToday();
+      saveDate(getDateKey('opname_date_history', this.user), today);
+      this.dateHistory = today;
+      this.fetchTransactions();
+    },
+
+    async fetchProducts(forceRefresh = false) {
+      if (!forceRefresh) {
         const cached = await getCached('products', 'master');
         if (cached && cached.length > 0) {
-          set({ products: cached, syncError: null });
-        } else {
-          set({ syncError: json.message || 'Gagal mengambil master product.' });
+          this.products = cached;
+          this.syncError = null;
         }
       }
-    } catch (err) {
-      // Network error - use cache
-      const cached = await getCached('products', 'master');
-      if (cached && cached.length > 0) {
-        set({ products: cached, syncError: null });
-      } else {
-        set({
-          syncError: err instanceof Error ? err.message : 'Gagal mengambil master product.',
-        });
+
+      try {
+        const res = await fetch('/api/products');
+        const json = await res.json();
+        if (json.success) {
+          const products = json.data || [];
+          this.products = products;
+          this.syncError = null;
+          await setCache('products', 'master', products);
+        } else {
+          const cached = await getCached('products', 'master');
+          if (cached && cached.length > 0) {
+            this.products = cached;
+          } else {
+            this.syncError = json.message || 'Gagal mengambil master product.';
+          }
+        }
+      } catch (err) {
+        const cached = await getCached('products', 'master');
+        if (cached && cached.length > 0) {
+          this.products = cached;
+        } else {
+          this.syncError = err instanceof Error ? err.message : 'Gagal mengambil master product.';
+        }
       }
-    }
-  },
+    },
 
-  fetchTransactions: async (forceRefresh = false) => {
-    const date = get().dateHistory;
-    const cacheKey = `tx_${date}`;
+    async fetchTransactions(forceRefresh = false) {
+      const date = this.dateHistory;
+      const cacheKey = `tx_${date}`;
 
-    // Try cache first
-    if (!forceRefresh) {
-      const cached = await getCached('transactions', cacheKey);
-      if (cached && cached.length > 0) {
-        set({ transactions: cached, syncError: null });
-      }
-    }
-
-    set({ isSyncing: true });
-    try {
-      const res = await fetch(`/api/transactions?date=${encodeURIComponent(date)}`);
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        const transactions = json.data || [];
-        set({ transactions, syncError: null });
-        await setCache('transactions', cacheKey, transactions);
-      } else {
+      if (!forceRefresh) {
         const cached = await getCached('transactions', cacheKey);
         if (cached && cached.length > 0) {
-          set({ transactions: cached, syncError: null });
-        } else {
-          set({ syncError: json.message || 'Gagal mengambil riwayat transaksi.' });
+          this.transactions = cached;
+          this.syncError = null;
         }
       }
-    } catch (err) {
-      const cached = await getCached('transactions', cacheKey);
-      if (cached && cached.length > 0) {
-        set({ transactions: cached, syncError: null });
-      } else {
-        set({ syncError: err instanceof Error ? err.message : 'Gagal mengambil riwayat transaksi.' });
+
+      this.isSyncing = true;
+      try {
+        const res = await fetch(`/api/transactions?date=${encodeURIComponent(date)}`);
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          const transactions = json.data || [];
+          this.transactions = transactions;
+          this.syncError = null;
+          await setCache('transactions', cacheKey, transactions);
+        } else {
+          const cached = await getCached('transactions', cacheKey);
+          if (cached && cached.length > 0) {
+            this.transactions = cached;
+          } else {
+            this.syncError = json.message || 'Gagal mengambil riwayat transaksi.';
+          }
+        }
+      } catch (err) {
+        const cached = await getCached('transactions', cacheKey);
+        if (cached && cached.length > 0) {
+          this.transactions = cached;
+        } else {
+          this.syncError = err instanceof Error ? err.message : 'Gagal mengambil riwayat transaksi.';
+        }
+      } finally {
+        this.isSyncing = false;
       }
-    } finally {
-      set({ isSyncing: false });
-    }
-  },
+    },
 
-  syncCloud: async () => {
-    set({ isSyncing: true });
-    try {
-      // Force sync pending queue first
-      await forceSyncNow();
+    async syncCloud() {
+      this.isSyncing = true;
+      try {
+        await forceSyncNow();
+        await this.fetchProducts(true);
+        await this.fetchTransactions(true);
+        this.syncError = null;
+        this.notify('success', 'Sinkronisasi cloud selesai.');
+      } catch (err) {
+        this.syncError = err instanceof Error ? err.message : 'Gagal sinkronisasi cloud.';
+        this.notify('error', this.syncError);
+      } finally {
+        this.isSyncing = false;
+      }
+    },
 
-      // Then refresh data
-      await get().fetchProducts(true);
-      await get().fetchTransactions(true);
-      set({ syncError: null });
-    } catch (err) {
-      set({ syncError: err instanceof Error ? err.message : 'Gagal sinkronisasi cloud.' });
-    } finally {
-      set({ isSyncing: false });
-    }
-  },
+    async addTransaction(record: Omit<Transaction, 'id' | 'timestamp'>): Promise<MutationResult> {
+      const optimisticId = 'optimistic_' + Date.now();
+      const newTx = { ...record, id: optimisticId, timestamp: Date.now() } as Transaction;
 
-  addTransaction: async (record) => {
-    const optimisticId = 'optimistic_' + Date.now();
-    const newTx = { ...record, id: optimisticId, timestamp: Date.now() } as Transaction;
+      this.transactions.unshift(newTx);
 
-    // Optimistic update
-    set((state) => ({ transactions: [newTx, ...state.transactions] }));
-
-    // If offline, queue it
-    if (!isOnline()) {
-      await queueTransaction(record.type, 'create', record, optimisticId);
-      return {
-        success: true,
-        message: 'Tersimpan offline. Akan disinkronkan saat online.',
-        id: optimisticId,
-        queued: true,
-      };
-    }
-
-    try {
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record }),
-      });
-      const result = await readMutationResult(res);
-
-      if (!result.success) {
-        // Rollback only this transaction
-        set((state) => ({
-          transactions: state.transactions.filter((t) => t.id !== optimisticId),
-          syncError: result.message
-        }));
-        return result;
+      if (!checkOnline()) {
+        await queueTransaction(record.type, 'create', record, optimisticId);
+        return {
+          success: true,
+          message: 'Tersimpan offline. Akan disinkronkan saat online.',
+          id: optimisticId,
+          queued: true,
+        };
       }
 
-      // Update with real ID
-      if (result.id) {
-        set((state) => ({
-          transactions: state.transactions.map((t) =>
+      try {
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ record }),
+        });
+        const result = await readMutationResult(res);
+
+        if (!result.success) {
+          this.transactions = this.transactions.filter((t) => t.id !== optimisticId);
+          this.syncError = result.message;
+          return result;
+        }
+
+        if (result.id) {
+          this.transactions = this.transactions.map((t) =>
             t.id === optimisticId ? { ...t, id: result.id! } : t
-          ),
-        }));
-      }
+          );
+        }
 
-      return result;
-    } catch (err) {
-      // Network error - queue it
-      await queueTransaction(record.type, 'create', record, optimisticId);
-      return {
-        success: true,
-        message: 'Tersimpan offline. Akan disinkronkan saat online.',
-        id: optimisticId,
-        queued: true,
-      };
-    }
-  },
-
-  updateTransaction: async (id, type, record) => {
-    const previousTx = get().transactions.find((t) => t.id === id);
-    if (!previousTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
-
-    // Optimistic update
-    set((state) => ({
-      transactions: state.transactions.map((t) => (t.id === id ? { ...t, ...record } : t)),
-    }));
-
-    if (!isOnline()) {
-      await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
-      return {
-        success: true,
-        message: 'Update tersimpan offline.',
-        queued: true,
-      };
-    }
-
-    try {
-      const res = await fetch(`/api/transactions/${id}?type=${type}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record }),
-      });
-      const result = await readMutationResult(res);
-
-      if (!result.success) {
-        // Rollback only this transaction
-        set((state) => ({
-          transactions: state.transactions.map((t) => (t.id === id ? previousTx : t)),
-          syncError: result.message
-        }));
         return result;
+      } catch {
+        await queueTransaction(record.type, 'create', record, optimisticId);
+        return {
+          success: true,
+          message: 'Tersimpan offline. Akan disinkronkan saat online.',
+          id: optimisticId,
+          queued: true,
+        };
+      }
+    },
+
+    async updateTransaction(id: string, type: 'IN' | 'CC', record: Partial<Transaction>): Promise<MutationResult> {
+      const previousTx = this.transactions.find((t) => t.id === id);
+      if (!previousTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
+
+      this.transactions = this.transactions.map((t) => (t.id === id ? { ...t, ...record } : t));
+
+      if (!checkOnline()) {
+        await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
+        return {
+          success: true,
+          message: 'Update tersimpan offline.',
+          queued: true,
+        };
       }
 
-      return result;
-    } catch (err) {
-      await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
-      return {
-        success: true,
-        message: 'Update tersimpan offline.',
-        queued: true,
-      };
-    }
-  },
+      try {
+        const res = await fetch(`/api/transactions/${id}?type=${type}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ record }),
+        });
+        const result = await readMutationResult(res);
 
-  deleteTransaction: async (id, type) => {
-    const deletedTx = get().transactions.find((t) => t.id === id);
-    if (!deletedTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
+        if (!result.success) {
+          this.transactions = this.transactions.map((t) => (t.id === id ? previousTx : t));
+          this.syncError = result.message;
+          return result;
+        }
 
-    // Optimistic update
-    set((state) => ({ transactions: state.transactions.filter((t) => t.id !== id) }));
-
-    if (!isOnline()) {
-      await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
-      return {
-        success: true,
-        message: 'Hapus tersimpan offline.',
-        queued: true,
-      };
-    }
-
-    try {
-      const res = await fetch(`/api/transactions/${id}?type=${type}`, {
-        method: 'DELETE',
-      });
-      const result = await readMutationResult(res);
-
-      if (!result.success) {
-        // Rollback: put the deleted transaction back and sort by timestamp desc
-        set((state) => ({
-          transactions: [...state.transactions, deletedTx].sort((a, b) => b.timestamp - a.timestamp),
-          syncError: result.message
-        }));
         return result;
+      } catch {
+        await queueTransaction(type, 'update', { ...record, id, type }, `update_${id}`);
+        return {
+          success: true,
+          message: 'Update tersimpan offline.',
+          queued: true,
+        };
+      }
+    },
+
+    async deleteTransaction(id: string, type: 'IN' | 'CC'): Promise<MutationResult> {
+      const deletedTx = this.transactions.find((t) => t.id === id);
+      if (!deletedTx) return { success: false, message: 'Transaksi tidak ditemukan.' };
+
+      this.transactions = this.transactions.filter((t) => t.id !== id);
+
+      if (!checkOnline()) {
+        await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
+        return {
+          success: true,
+          message: 'Hapus tersimpan offline.',
+          queued: true,
+        };
       }
 
-      return result;
-    } catch (err) {
-      await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
-      return {
-        success: true,
-        message: 'Hapus tersimpan offline.',
-        queued: true,
-      };
-    }
+      try {
+        const res = await fetch(`/api/transactions/${id}?type=${type}`, {
+          method: 'DELETE',
+        });
+        const result = await readMutationResult(res);
+
+        if (!result.success) {
+          this.transactions.push(deletedTx);
+          this.transactions.sort((a, b) => b.timestamp - a.timestamp);
+          this.syncError = result.message;
+          return result;
+        }
+
+        return result;
+      } catch {
+        await queueTransaction(type, 'delete', { id, type }, `delete_${id}`);
+        return {
+          success: true,
+          message: 'Hapus tersimpan offline.',
+          queued: true,
+        };
+      }
+    },
   },
-}));
+});

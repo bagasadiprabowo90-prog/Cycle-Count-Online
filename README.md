@@ -1,6 +1,6 @@
 # Stock Opname Pro
 
-Aplikasi input stok berbasis React + Express untuk Product In, Cycle Count, riwayat transaksi, dan scan barcode 1D. Data master dan transaksi disinkronkan melalui Google Apps Script ke Google Sheets.
+Aplikasi input stok berbasis Vue 3 + Express untuk Product In, Cycle Count, riwayat transaksi, dan scan barcode 1D. Data master dan transaksi disinkronkan melalui Google Apps Script ke Google Sheets.
 
 Login operator memakai nama bebas dengan password tetap `blp123`.
 
