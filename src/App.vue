@@ -141,49 +141,49 @@ const handleLogin = () => {
     </div>
 
     <!-- 2. MAIN APP SHELL -->
-    <div v-else class="pb-36 pb-safe">
-      <!-- Compact Slim Header (Cycle Count Bob & Frou) -->
-      <header class="sticky top-0 z-30 bg-[#1E352E]/95 backdrop-blur-xl border-b border-[#8FC0A9]/20 text-white shadow-md">
-        <div class="max-w-md mx-auto px-3.5 py-2 flex items-center justify-between gap-2">
+    <div v-else class="pb-14">
+      <!-- Header: tinggi tetap 48px (sama dengan Bottom Nav) -->
+      <header class="sticky top-0 z-30 bg-[#1E352E] border-b border-[#8FC0A9]/25 text-white">
+        <div class="max-w-md mx-auto h-12 px-3 flex items-center justify-between gap-2">
           <!-- Brand & App Identity -->
           <div class="flex items-center gap-2 min-w-0">
-            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C8D5B9] to-[#8FC0A9] flex items-center justify-center text-[#1E352E] shadow-xs shrink-0 font-bold">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C8D5B9] to-[#8FC0A9] flex items-center justify-center text-[#1E352E] shrink-0">
               <Package class="w-4 h-4" />
             </div>
-            <div class="min-w-0">
-              <h1 class="text-xs sm:text-sm font-extrabold tracking-tight text-white leading-tight truncate">
+            <div class="min-w-0 leading-none">
+              <h1 class="text-[13px] font-extrabold tracking-tight text-white truncate">
                 Cycle Count Bob & Frou
               </h1>
-              <div class="flex items-center gap-1.5 text-[10px] text-[#C8D5B9] leading-none mt-0.5">
+              <div class="flex items-center gap-1.5 text-[10px] text-[#C8D5B9] mt-1">
                 <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0" :class="store.isOnline ? 'bg-[#8FC0A9] animate-pulse' : 'bg-rose-400'"></span>
                 <span class="truncate font-semibold">{{ store.user }}</span>
                 <span v-if="store.pendingCount > 0" class="text-amber-300 font-bold bg-amber-500/20 px-1 rounded text-[9px]">
                   {{ store.pendingCount }} pending
                 </span>
-                <span class="text-[#8FC0A9]/60 font-medium">· Sheets Sync</span>
+                <span class="text-[#8FC0A9]/70 font-medium">· Sheets Sync</span>
               </div>
             </div>
           </div>
 
-          <!-- Header Quick Action Pills -->
+          <!-- Header Quick Actions -->
           <div class="flex items-center gap-1 shrink-0">
             <button
               type="button"
               @click="store.syncCloud()"
               :disabled="store.isSyncing"
-              class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#C8D5B9] hover:text-white transition-colors"
+              class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-[#C8D5B9] hover:text-white transition-colors"
               title="Tarik data terbaru dari Google Sheets"
             >
-              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.isSyncing }" />
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.isSyncing }" />
             </button>
 
             <button
               type="button"
               @click="store.logout()"
-              class="p-1.5 rounded-lg bg-white/10 hover:bg-rose-500/20 text-[#C8D5B9] hover:text-rose-300 transition-colors"
+              class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-rose-500/20 text-[#C8D5B9] hover:text-rose-300 transition-colors"
               title="Keluar"
             >
-              <LogOut class="w-3.5 h-3.5" />
+              <LogOut class="w-4 h-4" />
             </button>
           </div>
         </div>
