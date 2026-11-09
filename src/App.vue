@@ -141,7 +141,7 @@ const handleLogin = () => {
     </div>
 
     <!-- 2. MAIN APP SHELL -->
-    <div v-else class="pb-28 pb-safe">
+    <div v-else class="pb-36 pb-safe">
       <!-- Top Sticky Header with Theme Palette -->
       <header class="sticky top-0 z-30 bg-[#1E352E]/95 backdrop-blur-xl border-b border-[#8FC0A9]/20 text-white shadow-xl shadow-[#1E352E]/15">
         <div class="max-w-md mx-auto px-4 py-3">

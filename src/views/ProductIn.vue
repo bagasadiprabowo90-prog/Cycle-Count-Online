@@ -211,7 +211,7 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <div class="space-y-3 pb-4">
+  <div class="space-y-3.5 pb-20">
     <!-- Scanner Modal -->
     <ScannerModal
       v-if="isScannerOpen"
@@ -511,14 +511,16 @@ const handleSave = async () => {
       </div>
     </div>
 
-    <!-- SECTION 4: SAVE ACTION BUTTON (Prominent & Tactile) -->
-    <button
-      type="button"
-      @click="handleSave"
-      class="w-full py-3.5 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm rounded-2xl shadow-lg shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-    >
-      <CheckCircle class="w-4 h-4 font-bold" />
-      <span>Simpan Product In</span>
-    </button>
+    <!-- SECTION 4: SAVE ACTION BUTTON (Prominent, Tactile, Well Clear of Bottom Bar) -->
+    <div class="pt-2 pb-8">
+      <button
+        type="button"
+        @click="handleSave"
+        class="w-full py-4 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#8FC0A9]"
+      >
+        <CheckCircle class="w-5 h-5 font-bold text-[#13251F]" />
+        <span>Simpan Product In</span>
+      </button>
+    </div>
   </div>
 </template>

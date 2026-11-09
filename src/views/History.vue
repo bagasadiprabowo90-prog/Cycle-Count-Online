@@ -134,7 +134,7 @@ const confirmDelete = async () => {
 </script>
 
 <template>
-  <div class="space-y-3 pb-4">
+  <div class="space-y-3.5 pb-20">
     <!-- Top Date Filter & Refresh Row -->
     <div class="flex items-center justify-between gap-2 px-0.5">
       <div>
