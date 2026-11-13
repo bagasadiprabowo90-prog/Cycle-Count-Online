@@ -30,6 +30,10 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
+button {
+  touch-action: manipulation;
+}
+
 /* Card & Section Containers */
 .neo-card {
   background: #ffffff;

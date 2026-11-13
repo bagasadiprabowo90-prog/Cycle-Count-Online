@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useStore } from '../store';
 import { Product } from '../types';
 import { calculateQty, toYMD, toMDY, formatDateShort, isToday } from '../lib/calc';
@@ -24,14 +24,31 @@ const searchRef = ref<HTMLInputElement | null>(null);
 const qtyInputRef = ref<HTMLInputElement | null>(null);
 const dateInputRef = ref<HTMLInputElement | null>(null);
 const saveButtonRef = ref<HTMLElement | null>(null);
+const isSaving = ref(false);
+
+let scrollTimer: ReturnType<typeof setTimeout> | null = null;
+let saveCooldownTimer: ReturnType<typeof setTimeout> | null = null;
 
 const scrollToSaveButton = () => {
+  if (scrollTimer) clearTimeout(scrollTimer);
   nextTick(() => {
-    setTimeout(() => {
-      saveButtonRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    scrollTimer = setTimeout(() => {
+      const el = saveButtonRef.value;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      if (!isVisible) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+      scrollTimer = null;
     }, 120);
   });
 };
+
+onBeforeUnmount(() => {
+  if (scrollTimer) clearTimeout(scrollTimer);
+  if (saveCooldownTimer) clearTimeout(saveCooldownTimer);
+});
 
 const search = ref('');
 const sku = ref('');
@@ -80,6 +97,12 @@ watch(qtyRaw, (val) => {
 
 // Auto-open batch modal when product is selected
 const selectProduct = (p: Product, skipBatchModal = false) => {
+  if (saveCooldownTimer) {
+    clearTimeout(saveCooldownTimer);
+    saveCooldownTimer = null;
+  }
+  isSaving.value = false;
+
   sku.value = p.sku;
   productName.value = p.product;
   batch.value = p.batch || '';
@@ -177,7 +200,9 @@ const adjustQty = (amount: number) => {
   scrollToSaveButton();
 };
 
-const handleSave = async () => {
+const handleSave = () => {
+  if (isSaving.value) return;
+
   const finalQty = calculateQty(qtyRaw.value);
   if (!sku.value) {
     store.notify('error', 'Silakan cari & pilih produk terlebih dahulu.');
@@ -190,41 +215,56 @@ const handleSave = async () => {
     return;
   }
 
+  isSaving.value = true;
+
   const finalBatch = batch.value.trim();
   const realBarcode =
     store.products.find((p) => p.sku === sku.value && p.batch === finalBatch)?.barcode ||
     `NEW-${sku.value}-${finalBatch || 'NOBATCH'}`;
 
-  try {
-    const res = await store.addTransaction({
-      type: 'CC',
-      date: store.dateCC,
-      barcode: realBarcode,
-      sku: sku.value,
-      product: productName.value,
-      batch: finalBatch,
-      qty: finalQty,
-      user: store.user || 'Operator',
-    });
+  const payload = {
+    type: 'CC' as const,
+    date: store.dateCC,
+    barcode: realBarcode,
+    sku: sku.value,
+    product: productName.value,
+    batch: finalBatch,
+    qty: finalQty,
+    user: store.user || 'Operator',
+  };
 
-    if (res.success) {
-      store.notify('success', `Cycle Count tersimpan: ${sku.value} (${finalQty} pcs)`);
-    } else {
-      store.notify('error', `Gagal sync: ${res.message}`);
-    }
-  } catch {
-    store.notify('error', 'Gagal menyimpan transaksi Cycle Count.');
-  }
-
-  // Instant reset form for next item
+  // Instant reset form for next item so button & form respond immediately
   sku.value = '';
   productName.value = '';
   batch.value = '';
   qtyRaw.value = '';
   search.value = '';
+  showDropdown.value = false;
+
+  store.notify('success', `Cycle Count tersimpan: ${payload.sku} (${finalQty} pcs)`);
+
   nextTick(() => {
     searchRef.value?.focus();
   });
+
+  // Cooldown prevents accidental double-tap from triggering a duplicate save or empty-form error
+  if (saveCooldownTimer) clearTimeout(saveCooldownTimer);
+  saveCooldownTimer = setTimeout(() => {
+    isSaving.value = false;
+    saveCooldownTimer = null;
+  }, 400);
+
+  // Sync to backend in background without blocking the form
+  store
+    .addTransaction(payload)
+    .then((res) => {
+      if (!res.success) {
+        store.notify('error', `Gagal sync ${payload.sku}: ${res.message}`);
+      }
+    })
+    .catch(() => {
+      store.notify('error', `Gagal menyimpan transaksi ${payload.sku}.`);
+    });
 };
 </script>
 
@@ -466,7 +506,6 @@ const handleSave = async () => {
             inputmode="decimal"
             placeholder="0 (cth: 12*5)"
             @focus="scrollToSaveButton"
-            @input="scrollToSaveButton"
             @keyup.enter="handleSave"
             class="w-full px-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-lg font-mono font-extrabold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all text-center tracking-wider"
           />
@@ -536,10 +575,11 @@ const handleSave = async () => {
       <button
         type="button"
         @click="handleSave"
-        class="w-full py-4 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#8FC0A9]"
+        :disabled="isSaving"
+        class="w-full py-4 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#8FC0A9] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation"
       >
         <CheckCircle class="w-5 h-5 font-bold text-[#13251F]" />
-        <span>Simpan Cycle Count</span>
+        <span>{{ isSaving ? 'Tersimpan...' : 'Simpan Cycle Count' }}</span>
       </button>
     </div>
   </div>
