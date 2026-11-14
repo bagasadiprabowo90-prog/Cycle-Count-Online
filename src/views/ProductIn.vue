@@ -193,14 +193,6 @@ const backspaceQty = () => {
   scrollToSaveButton();
 };
 
-const adjustQty = (amount: number) => {
-  const current = calculateQty(qtyRaw.value);
-  const next = Math.max(0, current + amount);
-  qtyRaw.value = next > 0 ? String(next) : '';
-  qtyInputRef.value?.focus();
-  scrollToSaveButton();
-};
-
 const handleSave = () => {
   if (isSaving.value) return;
 
@@ -294,11 +286,11 @@ const handleSave = () => {
     <!-- Header & Date Bar -->
     <div class="flex items-center justify-between gap-2 px-0.5">
       <div>
-        <h2 class="text-sm font-extrabold text-[#172D26] tracking-tight flex items-center gap-1.5">
-          <PackagePlus class="w-4 h-4 text-[#3D6E5C]" />
+        <h2 class="text-base font-extrabold text-[#132327] tracking-tight leading-tight flex items-center gap-1.5">
+          <PackagePlus class="w-4 h-4 text-[#0D9488] stroke-[1.75]" />
           <span>Product In</span>
         </h2>
-        <p class="text-[11px] text-[#5C796E] font-medium">Penerimaan barang masuk ke gudang</p>
+        <p class="text-xs text-[#4A656B] font-medium mt-0.5">Penerimaan barang masuk ke gudang</p>
       </div>
 
       <div class="flex items-center gap-1.5">
@@ -306,14 +298,14 @@ const handleSave = () => {
           <button
             type="button"
             @click="openDatePicker"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow-xs cursor-pointer"
+            class="min-h-[44px] flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all duration-[180ms] active:scale-[0.98] cursor-pointer tabular-nums"
             :class="
               isToday(store.dateIN)
-                ? 'bg-[#C8D5B9]/40 text-[#1E352E] border-[#8FC0A9]/60'
-                : 'bg-white text-[#2D5347] border-[#C8D5B9] hover:bg-[#F4F7F4]'
+                ? 'bg-[#CCFBF1]/80 text-[#0B4F54] border-[#5EEAD4]'
+                : 'bg-white text-[#0F766E] border-slate-900/[0.08] hover:bg-[#EEF5F5]'
             "
           >
-            <CalendarDays class="w-3.5 h-3.5 text-[#3D6E5C]" />
+            <CalendarDays class="w-4 h-4 text-[#0D9488] stroke-[1.75]" />
             <span>{{ formatDateShort(store.dateIN) }}</span>
           </button>
           <input
@@ -329,35 +321,36 @@ const handleSave = () => {
           v-if="!isToday(store.dateIN)"
           type="button"
           @click="store.resetDateIN()"
-          class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-[#8FC0A9] text-[#172D26] shadow-xs hover:bg-[#7EB39B] transition-colors"
+          class="min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold bg-[#0D9488] text-white hover:bg-[#0F766E] transition-colors duration-[180ms] active:scale-[0.98] cursor-pointer"
         >
           Hari Ini
         </button>
       </div>
     </div>
 
-    <!-- SECTION 1: SEARCH & SCAN BARCODE (Separated, Not Merged) -->
-    <div class="bg-white rounded-2xl p-4 border border-[#8FC0A9]/40 shadow-xs relative">
-      <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider mb-2">
+    <!-- SECTION 1: SEARCH & SCAN BARCODE -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-900/[0.06] shadow-[0_2px_12px_-4px_rgba(11,59,64,0.06)] relative">
+      <label class="block text-xs font-bold text-[#4A656B] uppercase tracking-wider mb-2">
         1. Cari atau Scan Produk
       </label>
 
       <div class="flex gap-2">
-        <div class="relative flex-1">
-          <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A958B]" />
+        <div class="relative flex-1 min-w-0">
+          <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4A656B]" />
           <input
             ref="searchRef"
             v-model="search"
             @focus="showDropdown = true"
             type="text"
             placeholder="Ketik SKU, Nama, atau Barcode..."
-            class="w-full pl-9 pr-8 py-2.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs sm:text-sm text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all font-medium"
+            class="w-full min-h-[48px] pl-10 pr-11 py-2.5 bg-[#EEF5F5] border border-slate-900/[0.07] rounded-xl text-base text-[#132327] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/40 focus:border-[#0D9488] transition-all font-medium"
           />
           <button
             v-if="search"
             type="button"
             @click="search = ''; showDropdown = false"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7A958B] hover:text-[#172D26] p-1"
+            class="absolute right-0.5 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#4A656B] hover:text-[#132327] rounded-xl cursor-pointer"
+            title="Bersihkan"
           >
             <X class="w-4 h-4" />
           </button>
@@ -365,30 +358,30 @@ const handleSave = () => {
           <!-- AUTOCOMPLETE DROPDOWN: Mobile Full-View (No Text Truncation) -->
           <div
             v-if="showDropdown && filteredProducts.length > 0"
-            class="absolute left-0 right-0 top-full mt-1.5 bg-white border-2 border-[#8FC0A9] rounded-2xl shadow-2xl z-40 max-h-72 overflow-y-auto divide-y divide-[#C8D5B9]/40"
+            class="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-900/[0.08] rounded-2xl shadow-[0_14px_34px_-8px_rgba(11,59,64,0.16)] z-40 max-h-72 overflow-y-auto divide-y divide-slate-900/[0.06]"
           >
             <button
               v-for="p in filteredProducts"
               :key="p.sku + (p.batch || '')"
               type="button"
               @click="selectProduct(p)"
-              class="w-full p-3.5 text-left hover:bg-[#C8D5B9]/20 active:bg-[#C8D5B9]/40 transition-colors flex flex-col gap-1.5 cursor-pointer"
+              class="w-full min-h-[52px] p-3.5 text-left hover:bg-[#F0FAFA] active:bg-[#E0F7F6] transition-colors flex flex-col gap-1.5 cursor-pointer"
             >
               <!-- Full product name, completely visible on mobile without line clamp -->
-              <div class="text-xs font-extrabold text-[#172D26] leading-relaxed break-words">
+              <div class="text-sm font-bold text-[#132327] leading-snug break-words">
                 {{ p.product }}
               </div>
 
               <!-- Badges Row: SKU, Batch, Barcode neatly wrapped -->
               <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span class="bg-[#C8D5B9]/50 text-[#172D26] px-2 py-0.5 rounded-md text-[10px] font-mono font-extrabold border border-[#C8D5B9]">
+                <span class="bg-[#E6F7F6] text-[#0D5C63] px-2 py-0.5 rounded-lg text-xs font-mono font-bold tabular-nums">
                   {{ p.sku }}
                 </span>
-                <span v-if="p.batch" class="bg-[#8FC0A9]/30 text-[#1E352E] px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border border-[#8FC0A9]/50">
+                <span v-if="p.batch" class="bg-[#CCFBF1] text-[#0F4C52] px-2 py-0.5 rounded-lg text-xs font-mono font-semibold tabular-nums">
                   Batch: {{ p.batch }}
                 </span>
-                <span v-if="p.barcode" class="bg-[#FAFBF9] text-[#5C796E] px-2 py-0.5 rounded-md text-[10px] font-mono font-medium border border-slate-200 flex items-center gap-1">
-                  <Barcode class="w-3 h-3 text-[#7A958B]" />
+                <span v-if="p.barcode" class="bg-[#F4F9F9] text-[#4A656B] px-2 py-0.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1 tabular-nums">
+                  <Barcode class="w-3 h-3 text-[#4A656B]" />
                   {{ p.barcode }}
                 </span>
               </div>
@@ -399,29 +392,29 @@ const handleSave = () => {
         <button
           type="button"
           @click="isScannerOpen = true"
-          class="px-4 py-2.5 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold rounded-xl shadow-md shadow-[#8FC0A9]/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
+          class="min-w-[48px] min-h-[48px] px-4 bg-[#06B6D4] hover:bg-[#0891B2] text-white font-bold rounded-xl shadow-[0_2px_10px_-3px_rgba(6,182,212,0.45)] active:scale-[0.98] transition-all duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-center cursor-pointer shrink-0"
           title="Scan Barcode Kamera"
         >
-          <Camera class="w-5 h-5" />
+          <Camera class="w-5 h-5 stroke-[1.75]" />
         </button>
       </div>
     </div>
 
-    <!-- SECTION 2: SELECTED PRODUCT & BATCH BADGE (Distinct Card) -->
-    <div v-if="sku" class="bg-white rounded-2xl p-4 border-2 border-[#8FC0A9] shadow-xs space-y-3">
+    <!-- SECTION 2: SELECTED PRODUCT & BATCH BADGE -->
+    <div v-if="sku" class="bg-white rounded-2xl p-4 border border-[#14B8A6]/60 shadow-[0_2px_12px_-4px_rgba(13,148,136,0.12)] space-y-3.5">
       <div class="flex items-start justify-between gap-2">
-        <div class="flex items-start gap-2.5 min-w-0">
-          <div class="p-2 rounded-xl bg-[#8FC0A9] text-[#13251F] shrink-0 mt-0.5 shadow-xs font-bold">
-            <Package class="w-4 h-4" />
+        <div class="flex items-start gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] flex items-center justify-center shrink-0">
+            <Package class="w-4 h-4 stroke-[1.75]" />
           </div>
           <div class="min-w-0">
-            <div class="text-[10px] uppercase font-bold text-[#4F685F] tracking-wider">Produk Terpilih</div>
+            <div class="text-xs font-semibold text-[#4A656B]">Produk Terpilih</div>
             <!-- Full Product Name: Mobile Friendly, Zero Truncation -->
-            <div class="text-xs font-extrabold text-[#172D26] leading-snug break-words mt-0.5">
+            <div class="text-sm font-bold text-[#132327] leading-snug break-words mt-0.5">
               {{ productName }}
             </div>
             <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-extrabold bg-[#C8D5B9]/40 text-[#172D26] border border-[#C8D5B9]">
+              <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-[#E6F7F6] text-[#0D5C63] tabular-nums">
                 {{ sku }}
               </span>
             </div>
@@ -431,7 +424,7 @@ const handleSave = () => {
         <button
           type="button"
           @click="sku = ''; productName = ''; batch = '';"
-          class="text-[#7A958B] hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
+          class="min-w-[44px] min-h-[44px] -mr-1.5 -mt-1.5 flex items-center justify-center text-[#4A656B] hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
           title="Ganti Produk"
         >
           <X class="w-4 h-4" />
@@ -439,33 +432,33 @@ const handleSave = () => {
       </div>
 
       <!-- Batch Selector Sub-Card -->
-      <div class="pt-3 border-t border-[#C8D5B9]/40">
+      <div class="pt-3 border-t border-slate-900/[0.06]">
         <div class="flex items-center justify-between mb-2">
-          <label class="text-[11px] font-bold text-[#4F685F] uppercase tracking-wider flex items-center gap-1">
-            <Layers class="w-3.5 h-3.5 text-[#3D6E5C]" />
+          <label class="text-xs font-bold text-[#4A656B] uppercase tracking-wider flex items-center gap-1.5">
+            <Layers class="w-3.5 h-3.5 text-[#0D9488]" />
             <span>Nomor Batch</span>
           </label>
           <button
             type="button"
             @click="isBatchModalOpen = true"
-            class="text-[11px] font-extrabold text-[#235342] hover:underline flex items-center gap-1 cursor-pointer bg-[#C8D5B9]/30 px-2 py-1 rounded-lg"
+            class="min-h-[36px] text-xs font-bold text-[#0F766E] hover:bg-[#CCFBF1] flex items-center gap-1 cursor-pointer bg-[#E6F7F6] px-3 py-1.5 rounded-lg transition-colors"
           >
             <span>Pilih Pop-up</span>
           </button>
         </div>
 
         <!-- Horizontal Batch Chips -->
-        <div v-if="availableBatches.length > 0" class="flex flex-wrap gap-1.5 mb-2">
+        <div v-if="availableBatches.length > 0" class="flex flex-wrap gap-1.5 mb-2.5">
           <button
             v-for="b in availableBatches"
             :key="b"
             type="button"
             @click="batch = b"
-            class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer border"
+            class="min-h-[44px] px-3 py-2 rounded-xl text-xs font-mono font-bold transition-all duration-[180ms] active:scale-[0.98] cursor-pointer border tabular-nums"
             :class="
               batch === b
-                ? 'bg-[#8FC0A9] text-[#13251F] border-[#8FC0A9] shadow-xs'
-                : 'bg-[#FAFBF9] text-[#3D6E5C] border-[#C8D5B9] hover:bg-[#C8D5B9]/30'
+                ? 'bg-[#0D9488] text-white border-[#0D9488]'
+                : 'bg-[#EEF5F5] text-[#0F5257] border-slate-900/[0.06] hover:bg-[#DDF2F0]'
             "
           >
             {{ b }}
@@ -476,27 +469,27 @@ const handleSave = () => {
           v-model="batch"
           type="text"
           placeholder="Ketik batch manual atau pilih di atas..."
-          class="w-full px-3.5 py-2.5 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-xs font-mono font-bold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all"
+          class="w-full min-h-[46px] px-3.5 py-2.5 bg-[#EEF5F5] border border-slate-900/[0.07] rounded-xl text-base font-mono font-bold text-[#132327] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/40 focus:border-[#0D9488] transition-all"
         />
       </div>
     </div>
 
-    <!-- SECTION 3: QUANTITY & MATH CALCULATOR (Distinct Card) -->
-    <div class="bg-white rounded-2xl p-4 border border-[#8FC0A9]/40 shadow-xs space-y-3">
-      <div class="flex items-center justify-between">
-        <label class="block text-[11px] font-bold text-[#4F685F] uppercase tracking-wider">
+    <!-- SECTION 3: QUANTITY & MATH CALCULATOR -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-900/[0.06] shadow-[0_2px_12px_-4px_rgba(11,59,64,0.06)] space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <label class="block text-xs font-bold text-[#4A656B] uppercase tracking-wider">
           2. Jumlah Qty Masuk
         </label>
 
         <!-- Live Result Evaluator Badge -->
         <div
           v-if="hasFormula && calculatedQty !== null"
-          class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-[#8FC0A9]/30 text-[#172D26] border border-[#8FC0A9] flex items-center gap-1 animate-in fade-in"
+          class="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#CCFBF1] text-[#0B4F54] flex items-center gap-1 tabular-nums"
         >
-          <Calculator class="w-3.5 h-3.5 text-[#2D5347]" />
+          <Calculator class="w-3.5 h-3.5 text-[#0D9488]" />
           <span>= {{ calculatedQty }} pcs</span>
         </div>
-        <span v-else class="text-[10px] text-[#7A958B] font-medium">Bisa hitung karton</span>
+        <span v-else class="text-xs text-[#4A656B] font-medium">Bisa hitung karton</span>
       </div>
 
       <div class="space-y-2.5">
@@ -509,16 +502,16 @@ const handleSave = () => {
             placeholder="0 (cth: 24*5)"
             @focus="scrollToSaveButton"
             @keyup.enter="handleSave"
-            class="w-full px-4 py-3 bg-[#FAFBF9] border border-[#C8D5B9] rounded-xl text-lg font-mono font-extrabold text-[#172D26] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8FC0A9]/40 focus:border-[#8FC0A9] transition-all text-center tracking-wider"
+            class="w-full min-h-[52px] px-4 py-3 bg-[#EEF5F5] border border-slate-900/[0.07] rounded-xl text-xl font-mono font-extrabold text-[#132327] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/40 focus:border-[#0D9488] transition-all text-center tracking-wider tabular-nums"
           />
         </div>
 
         <!-- Operator Keypad (+, -, x, ⌫, C) -->
-        <div class="grid grid-cols-5 gap-1.5">
+        <div class="grid grid-cols-5 gap-2">
           <button
             type="button"
             @click="appendOperator('+')"
-            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            class="min-h-[48px] rounded-xl text-lg font-bold bg-[#E6F5F4] hover:bg-[#D4EEEC] active:scale-[0.97] text-[#0F2A2E] border border-slate-900/[0.06] transition-all duration-[150ms] flex items-center justify-center cursor-pointer tabular-nums"
             title="Tambah (+)"
           >
             +
@@ -526,7 +519,7 @@ const handleSave = () => {
           <button
             type="button"
             @click="appendOperator('-')"
-            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            class="min-h-[48px] rounded-xl text-lg font-bold bg-[#E6F5F4] hover:bg-[#D4EEEC] active:scale-[0.97] text-[#0F2A2E] border border-slate-900/[0.06] transition-all duration-[150ms] flex items-center justify-center cursor-pointer tabular-nums"
             title="Kurang (-)"
           >
             −
@@ -534,7 +527,7 @@ const handleSave = () => {
           <button
             type="button"
             @click="appendOperator('×')"
-            class="py-2.5 rounded-xl text-base font-extrabold bg-[#C8D5B9]/40 hover:bg-[#C8D5B9]/70 active:scale-95 text-[#172D26] border border-[#C8D5B9] transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            class="min-h-[48px] rounded-xl text-lg font-bold bg-[#E6F5F4] hover:bg-[#D4EEEC] active:scale-[0.97] text-[#0F2A2E] border border-slate-900/[0.06] transition-all duration-[150ms] flex items-center justify-center cursor-pointer tabular-nums"
             title="Kali (×)"
           >
             ×
@@ -542,45 +535,32 @@ const handleSave = () => {
           <button
             type="button"
             @click="backspaceQty"
-            class="py-2.5 rounded-xl text-xs font-bold bg-[#FAFBF9] hover:bg-slate-200 active:scale-95 text-[#3D6E5C] border border-[#C8D5B9]/70 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            class="min-h-[48px] rounded-xl text-sm font-bold bg-[#EEF5F5] hover:bg-[#DCEAEA] active:scale-[0.97] text-[#0F766E] border border-slate-900/[0.06] transition-all duration-[150ms] flex items-center justify-center cursor-pointer"
             title="Hapus 1 karakter"
           >
-            <Delete class="w-4 h-4" />
+            <Delete class="w-4 h-4 stroke-[1.75]" />
           </button>
           <button
             type="button"
             @click="clearQty"
-            class="py-2.5 rounded-xl text-xs font-extrabold bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-xs"
+            class="min-h-[48px] rounded-xl text-sm font-bold bg-rose-50 hover:bg-rose-100 active:scale-[0.97] text-rose-700 border border-rose-500/15 transition-all duration-[150ms] flex items-center justify-center cursor-pointer"
             title="Clear semua"
           >
             C
           </button>
         </div>
-
-        <!-- Quick Increment Chips (+1, +5, +12, +24, +48) -->
-        <div class="grid grid-cols-5 gap-1.5">
-          <button
-            v-for="val in [1, 5, 12, 24, 48]"
-            :key="val"
-            type="button"
-            @click="adjustQty(val)"
-            class="py-1.5 rounded-lg text-xs font-bold bg-[#FAFBF9] hover:bg-[#C8D5B9]/30 active:scale-95 text-[#2D5347] border border-[#C8D5B9]/60 transition-all"
-          >
-            +{{ val }}
-          </button>
-        </div>
       </div>
     </div>
 
-    <!-- SECTION 4: SAVE ACTION BUTTON (Prominent, Tactile, Well Clear of Bottom Bar) -->
-    <div ref="saveButtonRef" class="pt-2 pb-8">
+    <!-- SECTION 4: SAVE ACTION BUTTON -->
+    <div ref="saveButtonRef" class="pt-1 pb-6">
       <button
         type="button"
         @click="handleSave"
         :disabled="isSaving"
-        class="w-full py-4 px-4 bg-gradient-to-r from-[#8FC0A9] to-[#68A68C] hover:from-[#7EB39B] hover:to-[#5B987F] text-[#13251F] font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-[#8FC0A9]/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#8FC0A9] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation"
+        class="w-full min-h-[52px] py-3.5 px-4 bg-[#0D9488] hover:bg-[#0F766E] text-white font-bold text-base rounded-2xl shadow-[0_6px_18px_-4px_rgba(13,148,136,0.45)] active:scale-[0.98] transition-all duration-[180ms] ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 touch-manipulation"
       >
-        <CheckCircle class="w-5 h-5 font-bold text-[#13251F]" />
+        <CheckCircle class="w-5 h-5 stroke-[2] text-white" />
         <span>{{ isSaving ? 'Tersimpan...' : 'Simpan Product In' }}</span>
       </button>
     </div>

@@ -5,15 +5,14 @@
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  /* Palette based on #C8D5B9 and #8FC0A9 */
-  --color-sage-light: #C8D5B9;
-  --color-sage-light-soft: #e5ece0;
-  --color-sage-light-50: #f5f8f3;
-  --color-sage-medium: #8FC0A9;
-  --color-sage-medium-hover: #7eb39b;
-  --color-sage-dark: #223f36;
-  --color-sage-darker: #172d26;
-  --color-sage-deep: #0f1f1a;
+  /* Palette: Mix Aqua & Bright Teal */
+  --color-aqua-light: #CCFBF1;
+  --color-aqua-soft: #E6F7F6;
+  --color-aqua-bright: #2DD4BF;
+  --color-teal-bright: #0D9488;
+  --color-teal-hover: #0F766E;
+  --color-teal-deep: #0B3B40;
+  --color-ink-primary: #132327;
 }
 
 :root {
@@ -21,10 +20,10 @@
 }
 
 body {
-  background-color: #f4f7f4;
-  color: #172d26;
+  background-color: #f4f9f9;
+  color: #132327;
   font-family: var(--font-sans);
-  min-height: 100vh;
+  min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -32,6 +31,10 @@ body {
 
 button {
   touch-action: manipulation;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Card & Section Containers */
@@ -95,9 +98,9 @@ button {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c8d5b9;
+  background: #99e2dc;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8fc0a9;
+  background: #14b8a6;
 }
